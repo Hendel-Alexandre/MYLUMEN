@@ -1,14 +1,42 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Sparkles } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useState } from 'react';
 
 export default function OnboardingPage() {
   const router = useRouter();
+  const { user } = useAuth();
+  const [isCompleting, setIsCompleting] = useState(false);
 
-  const handleGetStarted = () => {
+  const handleGetStarted = async () => {
+    // If user is not logged in, redirect to signup
+    if (!user) {
+      router.push('/signup');
+      return;
+    }
+
+    // Mark onboarding as complete
+    setIsCompleting(true);
+    
+    try {
+      // Try to update or insert the onboarding status
+      await supabase
+        .from('user_mode_settings' as any)
+        .upsert({
+          user_id: user.id,
+          onboarding_completed: true,
+          updated_at: new Date().toISOString()
+        });
+    } catch (error) {
+      console.error('Error completing onboarding:', error);
+    }
+    
+    // Navigate to dashboard
     router.push('/dashboard');
   };
 
@@ -66,9 +94,10 @@ export default function OnboardingPage() {
           <Button 
             size="lg" 
             onClick={handleGetStarted}
+            disabled={isCompleting}
             className="gap-2 bg-purple-600 hover:bg-purple-700 text-white px-8"
           >
-            Get Started <ArrowRight className="h-5 w-5" />
+            {isCompleting ? 'Setting up...' : 'Get Started'} <ArrowRight className="h-5 w-5" />
           </Button>
         </div>
       </Card>
