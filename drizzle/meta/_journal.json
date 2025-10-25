@@ -1,0 +1,41 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1761196465689,
+      "tag": "0000_clever_hedge_knight",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1761200026992,
+      "tag": "0001_cooing_sentinel",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1761234022637,
+      "tag": "0002_complete_vision",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1761234517367,
+      "tag": "0003_yielding_wolfsbane",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1761360671605,
+      "tag": "0004_silky_malice",
+      "breakpoints": true
+    }
+  ]
+}

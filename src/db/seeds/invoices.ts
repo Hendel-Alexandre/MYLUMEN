@@ -1,0 +1,262 @@
+import { db } from '@/db';
+import { invoices } from '@/db/schema';
+
+async function main() {
+    const sampleInvoices = [
+        {
+            quoteId: 1,
+            clientId: 2,
+            userId: 'user-123',
+            items: JSON.stringify([
+                { service_id: 3, quantity: 1, unit_price: 3500, total: 3500 },
+                { service_id: 7, quantity: 2, unit_price: 850, total: 1700 }
+            ]),
+            subtotal: 5200,
+            tax: 676,
+            total: 5876,
+            depositRequired: false,
+            depositAmount: null,
+            status: 'paid',
+            paidAt: '2024-01-15T10:30:00Z',
+            pdfUrl: 'https://storage.example.com/invoices/inv-001.pdf',
+            dueDate: '2024-02-01',
+            notes: 'Payment received via bank transfer. Thank you for your business.',
+            createdAt: new Date('2023-12-20').toISOString(),
+            updatedAt: new Date('2024-01-15').toISOString(),
+        },
+        {
+            quoteId: 3,
+            clientId: 5,
+            userId: 'user-123',
+            items: JSON.stringify([
+                { service_id: 1, quantity: 1, unit_price: 2500, total: 2500 }
+            ]),
+            subtotal: 2500,
+            tax: 325,
+            total: 2825,
+            depositRequired: false,
+            depositAmount: null,
+            status: 'paid',
+            paidAt: '2024-02-10T14:20:00Z',
+            pdfUrl: 'https://storage.example.com/invoices/inv-002.pdf',
+            dueDate: '2024-02-28',
+            notes: 'Net 30 payment terms. Paid on time.',
+            createdAt: new Date('2024-01-15').toISOString(),
+            updatedAt: new Date('2024-02-10').toISOString(),
+        },
+        {
+            quoteId: null,
+            clientId: 8,
+            userId: 'user-123',
+            items: JSON.stringify([
+                { service_id: 5, quantity: 3, unit_price: 1200, total: 3600 },
+                { service_id: 9, quantity: 1, unit_price: 450, total: 450 }
+            ]),
+            subtotal: 4050,
+            tax: 526.5,
+            total: 4576.5,
+            depositRequired: false,
+            depositAmount: null,
+            status: 'paid',
+            paidAt: '2024-03-05T09:15:00Z',
+            pdfUrl: null,
+            dueDate: '2024-03-15',
+            notes: 'Quick turnaround project. Payment via credit card.',
+            createdAt: new Date('2024-02-20').toISOString(),
+            updatedAt: new Date('2024-03-05').toISOString(),
+        },
+        {
+            quoteId: 5,
+            clientId: 1,
+            userId: 'user-123',
+            items: JSON.stringify([
+                { service_id: 12, quantity: 1, unit_price: 5000, total: 5000 }
+            ]),
+            subtotal: 5000,
+            tax: 650,
+            total: 5650,
+            depositRequired: false,
+            depositAmount: null,
+            status: 'paid',
+            paidAt: '2024-03-20T16:45:00Z',
+            pdfUrl: 'https://storage.example.com/invoices/inv-004.pdf',
+            dueDate: '2024-04-01',
+            notes: 'Enterprise client - monthly retainer.',
+            createdAt: new Date('2024-03-01').toISOString(),
+            updatedAt: new Date('2024-03-20').toISOString(),
+        },
+        {
+            quoteId: 2,
+            clientId: 4,
+            userId: 'user-123',
+            items: JSON.stringify([
+                { service_id: 6, quantity: 2, unit_price: 1800, total: 3600 },
+                { service_id: 8, quantity: 1, unit_price: 950, total: 950 }
+            ]),
+            subtotal: 4550,
+            tax: 591.5,
+            total: 5141.5,
+            depositRequired: false,
+            depositAmount: null,
+            status: 'unpaid',
+            paidAt: null,
+            pdfUrl: 'https://storage.example.com/invoices/inv-005.pdf',
+            dueDate: '2024-06-15',
+            notes: 'Net 30 payment terms. Please remit payment by due date.',
+            createdAt: new Date('2024-05-10').toISOString(),
+            updatedAt: new Date('2024-05-10').toISOString(),
+        },
+        {
+            quoteId: null,
+            clientId: 7,
+            userId: 'user-123',
+            items: JSON.stringify([
+                { service_id: 2, quantity: 1, unit_price: 1500, total: 1500 }
+            ]),
+            subtotal: 1500,
+            tax: 195,
+            total: 1695,
+            depositRequired: false,
+            depositAmount: null,
+            status: 'unpaid',
+            paidAt: null,
+            pdfUrl: null,
+            dueDate: '2024-06-20',
+            notes: 'Consultation services rendered. Payment due upon receipt.',
+            createdAt: new Date('2024-05-18').toISOString(),
+            updatedAt: new Date('2024-05-18').toISOString(),
+        },
+        {
+            quoteId: 7,
+            clientId: 3,
+            userId: 'user-123',
+            items: JSON.stringify([
+                { service_id: 11, quantity: 4, unit_price: 750, total: 3000 },
+                { service_id: 14, quantity: 1, unit_price: 1200, total: 1200 }
+            ]),
+            subtotal: 4200,
+            tax: 546,
+            total: 4746,
+            depositRequired: false,
+            depositAmount: null,
+            status: 'unpaid',
+            paidAt: null,
+            pdfUrl: 'https://storage.example.com/invoices/inv-007.pdf',
+            dueDate: '2024-06-25',
+            notes: 'Please wire transfer to account details provided below.',
+            createdAt: new Date('2024-05-22').toISOString(),
+            updatedAt: new Date('2024-05-22').toISOString(),
+        },
+        {
+            quoteId: 4,
+            clientId: 6,
+            userId: 'user-123',
+            items: JSON.stringify([
+                { service_id: 4, quantity: 1, unit_price: 4500, total: 4500 },
+                { service_id: 10, quantity: 2, unit_price: 600, total: 1200 }
+            ]),
+            subtotal: 5700,
+            tax: 741,
+            total: 6441,
+            depositRequired: true,
+            depositAmount: 3220.5,
+            status: 'partially_paid',
+            paidAt: null,
+            pdfUrl: 'https://storage.example.com/invoices/inv-008.pdf',
+            dueDate: '2024-07-01',
+            notes: '50% deposit received. Balance due upon project completion.',
+            createdAt: new Date('2024-04-01').toISOString(),
+            updatedAt: new Date('2024-04-15').toISOString(),
+        },
+        {
+            quoteId: null,
+            clientId: 9,
+            userId: 'user-123',
+            items: JSON.stringify([
+                { service_id: 13, quantity: 1, unit_price: 3200, total: 3200 }
+            ]),
+            subtotal: 3200,
+            tax: 416,
+            total: 3616,
+            depositRequired: true,
+            depositAmount: 1808,
+            status: 'partially_paid',
+            paidAt: null,
+            pdfUrl: null,
+            dueDate: '2024-06-30',
+            notes: 'Initial deposit paid. Remaining balance due on completion.',
+            createdAt: new Date('2024-05-05').toISOString(),
+            updatedAt: new Date('2024-05-12').toISOString(),
+        },
+        {
+            quoteId: 6,
+            clientId: 10,
+            userId: 'user-123',
+            items: JSON.stringify([
+                { service_id: 15, quantity: 5, unit_price: 500, total: 2500 },
+                { service_id: 3, quantity: 1, unit_price: 1800, total: 1800 }
+            ]),
+            subtotal: 4300,
+            tax: 559,
+            total: 4859,
+            depositRequired: true,
+            depositAmount: 2429.5,
+            status: 'partially_paid',
+            paidAt: null,
+            pdfUrl: 'https://storage.example.com/invoices/inv-010.pdf',
+            dueDate: '2024-07-10',
+            notes: 'Deposit received. Final payment due upon delivery.',
+            createdAt: new Date('2024-05-15').toISOString(),
+            updatedAt: new Date('2024-05-20').toISOString(),
+        },
+        {
+            quoteId: 8,
+            clientId: 2,
+            userId: 'user-123',
+            items: JSON.stringify([
+                { service_id: 7, quantity: 1, unit_price: 2200, total: 2200 }
+            ]),
+            subtotal: 2200,
+            tax: 286,
+            total: 2486,
+            depositRequired: false,
+            depositAmount: null,
+            status: 'cancelled',
+            paidAt: null,
+            pdfUrl: null,
+            dueDate: '2024-04-30',
+            notes: 'Project cancelled by client. No payment required.',
+            createdAt: new Date('2024-03-15').toISOString(),
+            updatedAt: new Date('2024-04-05').toISOString(),
+        },
+        {
+            quoteId: null,
+            clientId: 4,
+            userId: 'user-123',
+            items: JSON.stringify([
+                { service_id: 1, quantity: 2, unit_price: 1400, total: 2800 },
+                { service_id: 5, quantity: 1, unit_price: 900, total: 900 }
+            ]),
+            subtotal: 3700,
+            tax: 481,
+            total: 4181,
+            depositRequired: false,
+            depositAmount: null,
+            status: 'overdue',
+            paidAt: null,
+            pdfUrl: 'https://storage.example.com/invoices/inv-012.pdf',
+            dueDate: '2024-03-30',
+            notes: 'OVERDUE: Payment was due on March 30, 2024. Please remit immediately.',
+            createdAt: new Date('2024-02-28').toISOString(),
+            updatedAt: new Date('2024-05-28').toISOString(),
+        },
+    ];
+
+    await db.insert(invoices).values(sampleInvoices);
+    
+    console.log('✅ Invoices seeder completed successfully');
+}
+
+main().catch((error) => {
+    console.error('❌ Seeder failed:', error);
+});
