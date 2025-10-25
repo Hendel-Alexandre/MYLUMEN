@@ -15,6 +15,15 @@ export function useOnboarding() {
         return;
       }
 
+      // Check localStorage first for a simpler approach
+      const localOnboardingComplete = localStorage.getItem('lumenr-onboarding-completed');
+      
+      if (localOnboardingComplete === 'true') {
+        setNeedsOnboarding(false);
+        setLoading(false);
+        return;
+      }
+
       try {
         const { data: settings, error } = await supabase
           .from('user_mode_settings' as any)
@@ -24,9 +33,19 @@ export function useOnboarding() {
 
         if (error) {
           console.error('Error checking onboarding status:', error);
-          setNeedsOnboarding(true);
+          // If table doesn't exist (PGRST205), skip onboarding
+          if (error.code === 'PGRST205') {
+            setNeedsOnboarding(false);
+            localStorage.setItem('lumenr-onboarding-completed', 'true');
+          } else {
+            setNeedsOnboarding(true);
+          }
         } else {
-          setNeedsOnboarding(!(settings as any)?.onboarding_completed);
+          const isComplete = (settings as any)?.onboarding_completed || false;
+          setNeedsOnboarding(!isComplete);
+          if (isComplete) {
+            localStorage.setItem('lumenr-onboarding-completed', 'true');
+          }
         }
       } catch (error) {
         console.error('Error in onboarding check:', error);

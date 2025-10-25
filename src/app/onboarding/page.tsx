@@ -23,8 +23,11 @@ export default function OnboardingPage() {
     // Mark onboarding as complete
     setIsCompleting(true);
     
+    // Save to localStorage immediately
+    localStorage.setItem('lumenr-onboarding-completed', 'true');
+    
     try {
-      // Try to update or insert the onboarding status
+      // Try to update or insert the onboarding status in database
       await supabase
         .from('user_mode_settings' as any)
         .upsert({
@@ -34,6 +37,7 @@ export default function OnboardingPage() {
         });
     } catch (error) {
       console.error('Error completing onboarding:', error);
+      // Ignore database errors - we already saved to localStorage
     }
     
     // Navigate to dashboard
