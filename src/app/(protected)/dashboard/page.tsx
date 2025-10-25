@@ -73,10 +73,10 @@ export default function DashboardPage() {
           </div>
         </motion.div>
 
-        {/* Interactive Analytics Banners */}
-        <motion.div variants={itemVariants}>
+        {/* Interactive Analytics Banners - Temporarily disabled due to database setup */}
+        {/* <motion.div variants={itemVariants}>
           <InteractiveBanners />
-        </motion.div>
+        </motion.div> */}
 
         {/* Quick Actions */}
         <motion.div variants={itemVariants}>
@@ -117,7 +117,26 @@ export default function DashboardPage() {
 
         {/* Analytics Dashboard with Insights */}
         <motion.div variants={itemVariants}>
-          <AnalyticsDashboard />
+          <Card className="p-6">
+            <h2 className="text-2xl font-bold mb-4">Your Dashboard</h2>
+            <p className="text-muted-foreground mb-6">
+              Welcome to your business management dashboard. Use the quick actions above or the sidebar to navigate to different sections.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Card className="p-4 bg-purple-50 dark:bg-purple-900/20">
+                <h3 className="font-semibold mb-2">Getting Started</h3>
+                <p className="text-sm text-muted-foreground">Add your first client or create an invoice to get started</p>
+              </Card>
+              <Card className="p-4 bg-blue-50 dark:bg-blue-900/20">
+                <h3 className="font-semibold mb-2">All Features Ready</h3>
+                <p className="text-sm text-muted-foreground">Access Clients, Invoices, Quotes, Receipts and more from the sidebar</p>
+              </Card>
+              <Card className="p-4 bg-green-50 dark:bg-green-900/20">
+                <h3 className="font-semibold mb-2">Need Help?</h3>
+                <p className="text-sm text-muted-foreground">Click the AI assistant icon to get help with anything</p>
+              </Card>
+            </div>
+          </Card>
         </motion.div>
       </motion.div>
       
