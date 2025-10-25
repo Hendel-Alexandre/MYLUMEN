@@ -112,6 +112,19 @@ The application requires several environment variables:
 
 ## Recent Changes
 
+### October 25, 2025 - Database Configuration Fix
+**Fixed Supabase Connection Issues:**
+- Updated `src/db/index.ts` to use Transaction Pooler with `prepare: false` option
+- Created `.env` file with correct pooler connection string (port 6543)
+- Database now connects successfully to: `aws-1-us-east-2.pooler.supabase.com:6543`
+- All API endpoints (Clients, Invoices, Quotes, Receipts, Payments, Contracts) now working
+- Created Lumen AI chat page at `/lumen` with complete LumenR knowledge base
+
+**Technical Details:**
+- Supabase Transaction Pooler requires `prepare: false` in postgres.js client configuration
+- Must use pooler connection string (port 6543) instead of direct connection (port 5432)
+- Connection string format: `postgresql://postgres.[ref]:[password]@aws-1-[region].pooler.supabase.com:6543/postgres`
+
 ### October 25, 2025 - Vercel to Replit Migration
 **Migration Summary:**
 - Migrated Next.js application from Vercel to Replit environment

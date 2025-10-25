@@ -16,16 +16,17 @@ try {
     // Create a mock db object for when database is not configured
     db = {} as ReturnType<typeof drizzle>;
   } else {
-    // Create PostgreSQL client for Supabase
+    // Create PostgreSQL client for Supabase Transaction Pooler
     const client = postgres(databaseUrl, {
       max: 10,
       idle_timeout: 20,
       connect_timeout: 10,
+      prepare: false, // Required for Supabase Transaction Pooler
     });
     
     // Initialize Drizzle with PostgreSQL
     db = drizzle(client, { schema });
-    console.log('[Database] Successfully connected to Supabase PostgreSQL');
+    console.log('[Database] Successfully connected to Supabase PostgreSQL (Pooler)');
   }
 } catch (error) {
   connectionError = `Failed to initialize database: ${error instanceof Error ? error.message : 'Unknown error'}`;
