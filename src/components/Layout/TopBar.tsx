@@ -1,7 +1,6 @@
 'use client';
 
 import { Moon, Sun, Globe, ChevronDown, LogOut, Circle, Settings } from 'lucide-react'
-import datatrackLogo from '@/assets/datatrack-logo.png'
 import { useTranslation } from 'react-i18next'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '@/contexts/AuthContext'
@@ -102,13 +101,9 @@ export function TopBar() {
           <SidebarTrigger className="h-8 w-8 hover:bg-accent/50 rounded-lg transition-colors" />
           <div className="hidden sm:block h-8 w-px bg-border/50" />
           <div className="hidden xl:flex items-center gap-3">
-            <Image 
-              src={datatrackLogo} 
-              alt="LumenR" 
-              className="h-16 sm:h-20 w-auto dark:invert"
-              width={150}
-              height={80}
-            />
+            <span className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+              LumenR
+            </span>
           </div>
         </div>
 

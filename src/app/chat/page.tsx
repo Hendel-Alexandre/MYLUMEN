@@ -10,8 +10,6 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
-import datatrackLogo from '@/assets/datatrack-logo.png';
 
 interface Message {
   id: string;
@@ -141,14 +139,9 @@ export default function ChatPage() {
                 Back
               </Button>
             </Link>
-            <Image 
-              src={datatrackLogo} 
-              alt="LumenR" 
-              className="h-12 w-auto dark:invert"
-              width={150}
-              height={48}
-              priority
-            />
+            <span className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+              LumenR
+            </span>
           </div>
           <div className="flex items-center gap-3">
             <Link href="/login">

@@ -20,7 +20,6 @@ import {
   Sparkles,
   CalendarCheck
 } from 'lucide-react'
-import datatrackLogo from '@/assets/datatrack-logo.png'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
@@ -105,15 +104,13 @@ export function AppSidebar() {
       <SidebarContent>
         {/* Logo Section */}
         <div className="p-6 border-b border-border/50">
-          <Image 
-            src={datatrackLogo} 
-            alt="LumenR" 
-            className={`transition-all duration-300 mx-auto dark:invert ${
-              isCollapsed ? 'h-20 w-auto' : 'h-32 w-auto'
-            }`}
-            width={150}
-            height={isCollapsed ? 80 : 128}
-          />
+          <div className="text-center">
+            <span className={`font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent transition-all duration-300 ${
+              isCollapsed ? 'text-xl' : 'text-3xl'
+            }`}>
+              LumenR
+            </span>
+          </div>
         </div>
         
         {/* Navigation Groups */}
