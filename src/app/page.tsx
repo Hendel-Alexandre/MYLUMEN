@@ -24,8 +24,6 @@ import {
   Database
 } from "lucide-react";
 import Link from "next/link";
-import Image from 'next/image';
-import datatrackLogo from '@/assets/datatrack-logo.png';
 
 export default function IndexPage() {
   return (
@@ -34,14 +32,9 @@ export default function IndexPage() {
       <nav className="border-b border-border/40 bg-card/50 backdrop-blur-xl sticky top-0 z-50">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center">
-            <Image 
-              src={datatrackLogo} 
-              alt="LumenR" 
-              className="h-12 w-auto dark:invert"
-              width={150}
-              height={48}
-              priority
-            />
+            <span className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+              LumenR
+            </span>
           </div>
           <div className="hidden md:flex items-center gap-6">
             <a href="#features" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
