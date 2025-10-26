@@ -47,27 +47,35 @@ export default function SettingsPage() {
 
   const [isLoading, setIsLoading] = useState(false)
 
-  // Load business profile from localStorage on mount
+  // Load business profile from API on mount
   useEffect(() => {
-    const loadBusinessProfile = () => {
+    const loadBusinessProfile = async () => {
       try {
-        const savedBusinessName = localStorage.getItem('business_name') || ''
-        const savedCurrency = localStorage.getItem('business_currency') || 'USD'
-        const savedTaxRegion = localStorage.getItem('business_tax_region') || ''
-        const savedPaymentInstructions = localStorage.getItem('business_payment_instructions') || ''
-        const savedInvoiceFooter = localStorage.getItem('business_invoice_footer') || ''
-        const savedLogoUrl = localStorage.getItem('business_logo_url') || ''
+        const token = localStorage.getItem('bearer_token')
+        if (!token) return
 
-        setBusinessProfile({
-          business_name: savedBusinessName,
-          logo_url: savedLogoUrl,
-          currency: savedCurrency,
-          tax_region: savedTaxRegion,
-          default_payment_instructions: savedPaymentInstructions,
-          invoice_footer: savedInvoiceFooter
+        const response = await fetch('/api/lumenr/business-profiles', {
+          headers: { 'Authorization': `Bearer ${token}` }
         })
+
+        if (response.ok) {
+          const result = await response.json()
+          // API returns { success: true, data: [...] }
+          const profiles = result.data || result
+          if (profiles && profiles.length > 0) {
+            const profile = profiles[0]
+            setBusinessProfile({
+              business_name: profile.businessName || '',
+              logo_url: profile.logoUrl || '',
+              currency: profile.currency || 'USD',
+              tax_region: profile.taxRegion || '',
+              default_payment_instructions: profile.paymentInstructions || '',
+              invoice_footer: profile.invoiceFooter || ''
+            })
+          }
+        }
       } catch (error) {
-        console.error('Failed to load business profile from localStorage:', error)
+        console.error('Failed to load business profile:', error)
       }
     }
 
@@ -78,15 +86,38 @@ export default function SettingsPage() {
     e.preventDefault()
     setLoadingBusiness(true)
     try {
-      localStorage.setItem('business_name', businessProfile.business_name)
-      localStorage.setItem('business_currency', businessProfile.currency)
-      localStorage.setItem('business_tax_region', businessProfile.tax_region)
-      localStorage.setItem('business_payment_instructions', businessProfile.default_payment_instructions)
-      localStorage.setItem('business_invoice_footer', businessProfile.invoice_footer)
-      if (businessProfile.logo_url) {
-        localStorage.setItem('business_logo_url', businessProfile.logo_url)
+      const token = localStorage.getItem('bearer_token')
+      if (!token) {
+        throw new Error('Authentication required')
       }
 
+      const response = await fetch('/api/lumenr/business-profiles', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          businessName: businessProfile.business_name,
+          logoUrl: businessProfile.logo_url,
+          currency: businessProfile.currency,
+          taxRegion: businessProfile.tax_region,
+          paymentInstructions: businessProfile.default_payment_instructions,
+          invoiceFooter: businessProfile.invoice_footer
+        })
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        // Extract error message from API response
+        const errorMessage = result.error || 'Failed to update business profile'
+        throw new Error(errorMessage)
+      }
+
+      // Keep localStorage in sync for backward compatibility
+      localStorage.setItem('business_name', businessProfile.business_name)
+      
       toast.success('Business profile updated successfully')
     } catch (error: any) {
       toast.error(error.message || 'Failed to update business profile')
