@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Plus, Search, Users, MoreHorizontal, Edit, Trash2, Mail, Phone, Building2, FileText, Receipt, FileSignature, Globe, Upload, Download, FileSpreadsheet, AlertCircle, CheckCircle2 } from 'lucide-react'
+import { Plus, Search, Users, MoreHorizontal, Edit, Trash2, Mail, Phone, Building2, FileText, Receipt, FileSignature, Globe } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -19,6 +19,7 @@ import { ClientTimeline } from '@/components/Dashboard/ClientTimeline'
 import { Switch } from '@/components/ui/switch'
 import { calculateTaxRate, getTaxDescription } from '@/lib/utils/tax-calculator'
 import { generateClientTemplate, parseClientExcel, ClientImportRow } from '@/lib/utils/excel-import'
+import { Upload, Download, FileSpreadsheet, AlertCircle, CheckCircle2 } from 'lucide-react'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 
 interface Client {
