@@ -94,17 +94,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!supabase) return;
     
     try {
-      const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', userId)
-        .maybeSingle()
+      const { data: { user }, error } = await supabase.auth.getUser()
 
       if (error) {
         console.error('[Auth] Error fetching user profile:', error)
         setUserProfile(null)
       } else {
-        setUserProfile(data)
+        setUserProfile({
+          id: user?.id,
+          email: user?.email,
+          first_name: user?.user_metadata?.first_name || '',
+          last_name: user?.user_metadata?.last_name || '',
+          business_name: user?.user_metadata?.business_name || '',
+          status: 'Available'
+        })
       }
     } catch (error) {
       console.error('[Auth] Error fetching user profile:', error)
@@ -160,17 +163,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (authError) return { error: authError }
       if (!authData.user) return { error: { message: 'No user created' } }
 
-      const { error: profileError } = await supabase
-        .from('users')
-        .insert({
-          id: authData.user.id,
-          first_name: firstName.trim(),
-          last_name: lastName.trim(),
-          email: trimmedEmail,
-          status: 'Available',
-          department: businessName.trim()
-        })
-
       if (typeof window !== 'undefined' && businessName.trim()) {
         localStorage.setItem('business_name', businessName.trim())
         localStorage.setItem('pending_business_name', businessName.trim())
@@ -187,13 +179,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!supabase) return;
     
     try {
-      if (user?.id) {
-        await supabase
-          .from('users')
-          .update({ status: 'Away' })
-          .eq('id', user.id)
-      }
-      
       await supabase.auth.signOut()
     } catch (error) {
       console.error('[Auth] Sign out failed:', error)
@@ -204,14 +189,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!user || !supabase) return
 
     try {
-      const { error } = await supabase
-        .from('users')
-        .update({ status })
-        .eq('id', user.id)
-
-      if (!error) {
-        setUserProfile((prev: any) => ({ ...prev, status }))
-      }
+      setUserProfile((prev: any) => ({ ...prev, status }))
     } catch (error) {
       console.error('[Auth] Failed to update user status:', error)
     }

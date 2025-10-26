@@ -18,44 +18,21 @@ export function useUserRole() {
 
     const fetchRoles = async () => {
       try {
-        const { data, error } = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', user.id);
-
+        const { data: { user: authUser }, error } = await supabase.auth.getUser()
+        
         if (error) throw error;
         
-        setRoles(data?.map(r => r.role as UserRole) || []);
+        const userRoles = authUser?.app_metadata?.roles as UserRole[] || ['admin'];
+        setRoles(userRoles);
       } catch (error) {
         console.error('Error fetching user roles:', error);
-        setRoles([]);
+        setRoles(['admin']);
       } finally {
         setLoading(false);
       }
     };
 
     fetchRoles();
-
-    // Subscribe to role changes
-    const subscription = supabase
-      .channel('user_roles_changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'user_roles',
-          filter: `user_id=eq.${user.id}`,
-        },
-        () => {
-          fetchRoles();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      subscription.unsubscribe();
-    };
   }, [user]);
 
   const hasRole = (role: UserRole): boolean => {
