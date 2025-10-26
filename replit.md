@@ -58,12 +58,13 @@ Preferred communication style: Simple, everyday language.
 ## Recent Changes (October 26, 2025)
 
 ### Invoicing & Quotes Enhancement (Complete)
--   **LineItemsEditor Component:** Created reusable component for adding products/services as line items to invoices and quotes with auto-calculation of totals.
+-   **LineItemsEditor Component:** Created reusable component for adding products/services as line items to invoices and quotes with auto-calculation of totals. Fixed critical bug ensuring totals recalculate when products/services are selected.
 -   **Invoice Line Items:** Full invoicing system with product/service line items, automatic subtotal/tax/total calculation based on client tax settings, status tracking (unpaid/partially_paid/paid/overdue/cancelled), and due date management.
 -   **Quote Line Items:** Enhanced quotes page with product/service line items, automatic total calculation, status tracking (draft/sent/accepted/declined/expired), and quote-to-invoice conversion feature.
 -   **Quote to Invoice Conversion:** One-click conversion of accepted quotes to invoices, preserving all line items and client information.
 -   **Tax Calculation:** Automatic tax calculation based on client's tax rate and auto-calculate settings.
 -   **Business Profile Integration:** Database-backed business profile settings (name, logo, currency, tax region, payment instructions, invoice footer) for use in invoices and contracts.
+-   **Contracts Management:** Enhanced contracts table with type, status (draft/sent/signed/expired/terminated), start/end dates, contract value, and dual signature tracking (client + user). Full CRUD operations with client association and content management.
 
 ### Receipt Image Management Enhancement
 -   **Image Download:** Added download button to receipt detail modal with browser download trigger, descriptive filename generation (`receipt-{vendor}-{date}.jpg`), response validation, and user feedback via toast notifications.
