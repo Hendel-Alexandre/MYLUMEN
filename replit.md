@@ -33,6 +33,7 @@ Preferred communication style: Simple, everyday language.
     -   **Receipt Management:** OCR receipt scanning with Tesseract.js for extracting vendor, date, and amount, and Excel import for receipts with validation.
     -   **Analytics Dashboard:** Interactive charts for revenue, client growth, expenses, and quote status, alongside a recent activity feed and AI-powered insights.
     -   **Authentication:** Google OAuth integration, password confirmation for signup, and enhanced form validation.
+    -   **Calendar & Bookings:** Full-featured scheduling with day/week views, Google Calendar bidirectional sync (import/export), idempotent updates using google_event_id tracking, timezone-aware event conversion, client assignment, status management (scheduled/completed/cancelled/rescheduled), and responsive mobile/desktop UI.
 
 ### System Design Choices
 
