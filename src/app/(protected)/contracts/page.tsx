@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Plus, Search, FileText, MoreHorizontal, Edit, Trash2, CheckCircle, Send, FileSignature } from 'lucide-react'
+import { Plus, Search, FileText, MoreHorizontal, Edit, Trash2, CheckCircle, Send, FileSignature, Download } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -15,6 +15,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { ContractPDF } from '@/components/PDF/ContractPDF'
+import { downloadPDF } from '@/lib/pdf-utils'
+import React from 'react'
 
 interface Client {
   id: number
@@ -171,6 +174,54 @@ export default function ContractsPage() {
       fetchContracts()
     } catch (error: any) {
       toast.error(error.message)
+    }
+  }
+
+  const downloadContractPDF = async (contract: Contract) => {
+    try {
+      const client = clients.find(c => c.id === contract.clientId)
+      if (!client) {
+        toast.error('Client information not found')
+        return
+      }
+
+      const businessProfile = {
+        businessName: localStorage.getItem('business_name') || 'Your Business',
+        businessAddress: '',
+        businessPhone: '',
+        businessEmail: '',
+        logoUrl: ''
+      }
+
+      const pdfData = {
+        id: contract.id,
+        title: contract.title,
+        body: contract.content || 'No content provided for this contract.',
+        type: contract.type,
+        status: contract.status,
+        value: contract.value || undefined,
+        startDate: contract.startDate || undefined,
+        endDate: contract.endDate || undefined,
+        signedByClient: contract.signedByClient,
+        signedByUser: contract.signedByUser,
+        signedAt: undefined,
+        createdAt: contract.createdAt,
+        clientName: client.name,
+        clientEmail: client.email,
+        clientCompany: client.company || undefined,
+        clientAddress: '',
+        ...businessProfile
+      }
+
+      await downloadPDF(
+        <ContractPDF data={pdfData} />,
+        `Contract-${contract.id}-${contract.title.replace(/\s+/g, '-')}.pdf`
+      )
+
+      toast.success('Contract PDF downloaded successfully!')
+    } catch (error: any) {
+      console.error('Error downloading contract PDF:', error)
+      toast.error('Failed to download contract PDF. Please try again.')
     }
   }
 
@@ -429,6 +480,10 @@ export default function ContractsPage() {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => downloadContractPDF(contract)}>
+                      <Download className="h-4 w-4 mr-2" />
+                      Download PDF
+                    </DropdownMenuItem>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
                         <DropdownMenuItem onSelect={(e) => e.preventDefault()}>

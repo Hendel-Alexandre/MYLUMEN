@@ -19,6 +19,9 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import LineItemsEditor from '@/components/LineItems/LineItemsEditor'
 import { useSubscription } from '@/hooks/useSubscription'
 import Link from 'next/link'
+import { InvoicePDF } from '@/components/PDF/InvoicePDF'
+import { downloadPDF } from '@/lib/pdf-utils'
+import React from 'react'
 
 interface Client {
   id: number
@@ -257,6 +260,57 @@ export default function InvoicesPage() {
       fetchInvoices()
     } catch (error: any) {
       toast.error(error.message)
+    }
+  }
+
+  const downloadInvoicePDF = async (invoice: Invoice) => {
+    try {
+      const client = clients.find(c => c.id === invoice.clientId)
+      if (!client) {
+        toast.error('Client information not found')
+        return
+      }
+
+      const businessProfile = {
+        businessName: localStorage.getItem('business_name') || 'Your Business',
+        businessAddress: '',
+        businessPhone: '',
+        businessEmail: '',
+        logoUrl: ''
+      }
+
+      const pdfData = {
+        invoiceNumber: `INV-${invoice.id}`,
+        date: new Date(invoice.createdAt).toLocaleDateString(),
+        dueDate: invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString() : '',
+        status: invoice.status,
+        clientName: client.name,
+        clientEmail: client.email,
+        clientCompany: client.company || '',
+        clientAddress: '',
+        items: invoice.items.map(item => ({
+          description: item.name,
+          quantity: item.quantity,
+          price: item.price,
+          total: item.total
+        })),
+        subtotal: invoice.subtotal,
+        tax: invoice.tax,
+        total: invoice.total,
+        notes: invoice.notes || '',
+        paymentInstructions: 'Please pay within 30 days',
+        ...businessProfile
+      }
+
+      await downloadPDF(
+        <InvoicePDF data={pdfData} />,
+        `Invoice-${invoice.id}-${client.name.replace(/\s+/g, '-')}.pdf`
+      )
+
+      toast.success('Invoice PDF downloaded successfully')
+    } catch (error: any) {
+      console.error('Error downloading invoice PDF:', error)
+      toast.error('Failed to download invoice PDF')
     }
   }
 
@@ -555,6 +609,10 @@ export default function InvoicesPage() {
                         <DropdownMenuItem onClick={() => handleEditInvoice(invoice)}>
                           <Edit className="h-4 w-4 mr-2" />
                           Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => downloadInvoicePDF(invoice)}>
+                          <Download className="h-4 w-4 mr-2" />
+                          Download PDF
                         </DropdownMenuItem>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Plus, Search, FileText, MoreHorizontal, Edit, Trash2, CheckCircle, Send, ArrowRight } from 'lucide-react'
+import { Plus, Search, FileText, MoreHorizontal, Edit, Trash2, CheckCircle, Send, ArrowRight, Download } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -16,6 +16,9 @@ import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import LineItemsEditor from '@/components/LineItems/LineItemsEditor'
+import { QuotePDF } from '@/components/PDF/QuotePDF'
+import { downloadPDF } from '@/lib/pdf-utils'
+import React from 'react'
 
 interface Client {
   id: number
@@ -246,6 +249,55 @@ export default function QuotesPage() {
       fetchQuotes()
     } catch (error: any) {
       toast.error(error.message)
+    }
+  }
+
+  const downloadQuotePDF = async (quote: Quote) => {
+    try {
+      const client = clients.find(c => c.id === quote.clientId)
+      if (!client) {
+        toast.error('Client information not found')
+        return
+      }
+
+      const businessProfile = {
+        businessName: localStorage.getItem('business_name') || 'Your Business',
+        businessAddress: '',
+        businessPhone: '',
+        businessEmail: '',
+        logoUrl: ''
+      }
+
+      const pdfData = {
+        quoteNumber: `Q-${quote.id}`,
+        date: new Date(quote.createdAt).toLocaleDateString(),
+        status: quote.status,
+        clientName: client.name,
+        clientEmail: client.email,
+        clientCompany: client.company || '',
+        clientAddress: '',
+        items: quote.items.map(item => ({
+          description: item.name,
+          quantity: item.quantity,
+          price: item.price,
+          total: item.total
+        })),
+        subtotal: quote.subtotal,
+        tax: quote.tax,
+        total: quote.total,
+        notes: quote.notes || '',
+        ...businessProfile
+      }
+
+      await downloadPDF(
+        <QuotePDF data={pdfData} />,
+        `Quote-${quote.id}-${client.name.replace(/\s+/g, '-')}.pdf`
+      )
+
+      toast.success('Quote PDF downloaded successfully')
+    } catch (error: any) {
+      console.error('Error downloading quote PDF:', error)
+      toast.error('Failed to download quote PDF')
     }
   }
 
@@ -544,6 +596,10 @@ export default function QuotesPage() {
                         <DropdownMenuItem onClick={() => handleEditQuote(quote)}>
                           <Edit className="h-4 w-4 mr-2" />
                           Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => downloadQuotePDF(quote)}>
+                          <Download className="h-4 w-4 mr-2" />
+                          Download PDF
                         </DropdownMenuItem>
                         {quote.status === 'accepted' && (
                           <DropdownMenuItem onClick={() => convertToInvoice(quote)}>
