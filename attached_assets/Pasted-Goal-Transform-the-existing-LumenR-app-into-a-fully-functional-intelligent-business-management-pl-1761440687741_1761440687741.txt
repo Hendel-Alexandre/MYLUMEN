@@ -1,0 +1,230 @@
+Goal:
+Transform the existing LumenR app into a fully functional, intelligent business management platform with authentication, payments, OCR, calendar sync, and automated workflows — while keeping the same UI style dashboard aesthetics.
+
+⚙️ General Instructions
+
+Keep the existing UI layout, design system, and colors (from D-Track/LumenR).
+
+Optimize everything for mobile, tablet, and desktop.
+
+Ensure all pages are interconnected (clients → quotes → invoices → tax/documents).
+
+Write secure, scalable code (Next.js + Drizzle + Supabase + Stripe).
+
+Enforce role-based access and secure all API routes.
+
+Fix JSON and authentication errors globally (Unexpected token '<' etc).
+
+Use real-time data syncing and React Query for smooth UI updates.
+
+🔐 Authentication
+
+✅ Keep Google login only.
+
+❌ Remove GitHub login icon and functionality.
+
+Add password confirmation field during signup.
+
+After signup, redirect users to onboarding (location → business info → preferences).
+
+Display user’s uploaded profile photo beside their business name in the top-right corner.
+
+👥 Clients Page
+
+Reduce card size — more compact for large client lists.
+
+Add fields: Country, Province/State, City.
+
+Auto-calculate regional taxes (GST, PST, VAT, etc.) based on location.
+
+Users can choose to apply or skip tax.
+
+Allow Excel data upload for importing clients (show example template).
+
+💬 Dashboard Enhancements
+
+Add interactive graphs (Revenue, Expenses, Clients, Quotes).
+
+Add Recent Activity Feed and “Quick Actions” (e.g., +Create Invoice, +Add Client).
+
+Display AI insights cards (“You’ve increased revenue by 12% this month”).
+
+Make dashboard more dynamic and visually balanced — no empty spaces.
+
+🧾 Receipts Page
+
+Add OCR receipt reader (Tesseract.js or API).
+
+Display extracted data: vendor, amount, date, category.
+
+Add a warning: “Please double-check the data for accuracy.”
+
+Allow Excel uploads for bulk receipts.
+
+Store all receipts automatically under Tax/Documents.
+
+📅 Calendar
+
+Make layout responsive for all screens.
+
+Add Google Calendar and Outlook sync (two-way).
+
+When linked, sync real-time updates to user’s Lumen calendar.
+
+Add quick event creation from any page.
+
+📂 New: Tax/Documents Page
+
+Collect all finalized PDFs (quotes, invoices, receipts).
+
+Organize by month/year and document type.
+
+Allow download/export of grouped data.
+
+Integrate auto-tax summaries.
+
+💬 Quotes Page
+
+Add a Quote Generator that creates PDF documents.
+
+Let users:
+
+Select services/products to include.
+
+Add a client or create one on the fly.
+
+Upload their own templates (with logo placeholders).
+
+After creation, users can send quote directly to the client via email.
+
+Once signed, quote auto-updates in Lumen and stores in Tax/Documents.
+
+💳 Invoices Page
+
+Users can:
+
+Create new invoices or convert quotes to invoices.
+
+Send invoice to client via email.
+
+Receive payment directly in Lumen.
+
+Integrate Stripe payments (multi-currency support).
+
+Once paid, mark automatically as “Paid” and move to Tax/Documents.
+
+Add mini performance summary: “17% more invoices than last month.”
+
+🛍️ Services / Products Page
+
+Users can create items with:
+
+Name, Description, Price, Image, Category, and Link.
+
+Generate public share links for payments.
+
+Allow importing/exporting via Excel template.
+
+Use Stripe for processing payments for each item.
+
+⚙️ Settings
+
+Allow editing of:
+
+Business info (logo, address, region, currency, tax rules).
+
+Profile picture (should appear in dashboard header).
+
+Add section for connecting:
+
+Google Calendar
+
+Outlook Calendar
+
+Stripe Account
+
+Privacy & Security:
+
+Remove user visibility & messaging system (Lumen is private).
+
+No one can access another user’s data.
+
+Protect against SQL injection, XSS, and prompt injection.
+
+🧠 AI & Insights
+
+Improve Lumen AI Assistant to focus on:
+
+Understanding user’s data (quotes, invoices, receipts).
+
+Giving financial tips, performance insights, and automation suggestions.
+
+Include prebuilt prompts (“How can I improve my cash flow?”, “Show my top clients this quarter”).
+
+Add “AI-powered autofill” for forms (based on previous entries).
+
+💵 Billing & Trial
+
+Keep 30-day free trial.
+
+After expiration:
+
+Users can view data only.
+
+Buttons for new actions (create/import/export) are greyed out.
+
+Show upgrade message.
+
+Integrate Stripe subscription for monthly/annual plans.
+
+Lock/unlock features dynamically based on payment status.
+
+📊 Data & Upload Rules
+
+For every data upload (clients, invoices, receipts, etc):
+
+Show a sample Excel template before upload.
+
+Validate columns and data before saving.
+
+Display upload summary (success + skipped rows).
+
+🔒 Security
+
+Add row-level security (RLS) on Supabase tables.
+
+Sanitize all API inputs and outputs.
+
+Use try/catch blocks for all fetch calls.
+
+Add robust error boundaries and fallback UIs.
+
+Use environment isolation (.env.local, .env.production).
+
+Enable SSL enforcement and CSP headers.
+
+📈 Bonus UX Features
+
+Floating “+” button to quickly add new data (context-aware).
+
+Progress checklist for onboarding completion.
+
+Save onboarding progress in localStorage.
+
+Interactive banners in dashboard (clickable insights).
+
+✅ Final Deliverable Behavior
+
+All pages fully functional and connected.
+
+Consistent design with glassmorphic style.
+
+Fully responsive and secure.
+
+All user flows tested:
+
+Client → Quote → Invoice → Payment → Documents.
+
+Google Calendar sync working.
+
+Stripe billing system active.
