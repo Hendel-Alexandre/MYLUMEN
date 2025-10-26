@@ -2,15 +2,7 @@
 
 ## Overview
 
-LumenR is a comprehensive business management platform built with Next.js 15, designed for freelancers, consultants, and small businesses. The application provides tools for client management, invoicing, payments, scheduling, and AI-powered business insights.
-
-**Tech Stack:**
-- Frontend: Next.js 15 (App Router), React, TypeScript
-- Styling: Tailwind CSS, Shadcn UI components
-- Database: PostgreSQL (Supabase)
-- ORM: Drizzle ORM
-- Authentication: Supabase Auth
-- Deployment: Vercel
+LumenR is a comprehensive business management platform designed for freelancers, consultants, and small businesses. It provides tools for client management, invoicing, payments, scheduling, and AI-powered business insights, aiming to streamline operations and enhance productivity.
 
 ## User Preferences
 
@@ -18,264 +10,42 @@ Preferred communication style: Simple, everyday language.
 
 ## System Architecture
 
-### Frontend Architecture
+### UI/UX Decisions
 
-**Framework:** Next.js 15 with App Router
-- Server and client components for optimal performance
-- File-based routing in `src/app/` directory
-- Protected routes wrapped in `(protected)` layout group
-- Shared UI components in `src/components/`
+-   **Framework:** Next.js 15 (App Router) with React and TypeScript.
+-   **Styling:** Tailwind CSS and Shadcn UI for a responsive, mobile-first design.
+-   **Theming:** Dark/light theme support.
+-   **Component Library:** Radix UI primitives for accessibility.
+-   **Design Patterns:** Error boundaries, safe boundary components, custom hooks for reusable logic, and TypeScript for type safety.
+-   **Visualizations:** Recharts for interactive analytics dashboards (Revenue, Client Growth, Expenses, Quote Status).
+-   **Accessibility:** Keyboard navigation and focus indicators for interactive elements.
 
-**State Management:**
-- React Context for global state (Auth, Theme, Mode)
-- React Query (`@tanstack/react-query`) for server state and caching
-- Local state with React hooks
+### Technical Implementations
 
-**UI Design System:**
-- Component library: Radix UI primitives with Shadcn customization
-- Responsive design with mobile-first approach
-- Dark/light theme support via ThemeContext
-- Custom animations and micro-interactions
+-   **State Management:** React Context for global state (Auth, Theme) and React Query for server state and caching.
+-   **API Structure:** Next.js API routes organized by feature domain (core, payments, AI, calendar, import).
+-   **Authentication:** Supabase Auth with bearer token-based API authentication and user ownership checks.
+-   **Database:** PostgreSQL (Supabase) with Drizzle ORM for type-safe queries and schema migrations.
+-   **Data Access:** Drizzle ORM with `postgres.js` client and connection pooling.
+-   **Key Features:**
+    -   **Client Management:** Comprehensive client profiles, location fields, compact cards, and auto-tax calculation based on jurisdiction.
+    -   **Client Import:** Bulk import clients via Excel with template generation, row-by-row validation, and error reporting.
+    -   **Receipt Management:** OCR receipt scanning with Tesseract.js for extracting vendor, date, and amount, and Excel import for receipts with validation.
+    -   **Analytics Dashboard:** Interactive charts for revenue, client growth, expenses, and quote status, alongside a recent activity feed and AI-powered insights.
+    -   **Authentication:** Google OAuth integration, password confirmation for signup, and enhanced form validation.
 
-**Key Design Patterns:**
-- Error boundaries for graceful error handling
-- Safe boundary components to prevent hydration errors
-- Custom hooks for reusable logic (useAuth, useOnboarding, useSubscription)
-- TypeScript for type safety throughout the application
+### System Design Choices
 
-### Backend Architecture
+-   **Frontend:** Next.js 15 App Router utilizing server and client components.
+-   **Backend:** Next.js API routes handling business logic and data persistence.
+-   **Database Schema:** Tables for clients, products, services, quotes, invoices, contracts, receipts, payments, business profiles, and bookings.
+-   **Environment Configuration:** Utilizes environment variables for sensitive data and API keys.
 
-**API Structure:**
-- Next.js API routes organized by feature domain:
-  - `/api/core/*` - Core business logic (clients, invoices, quotes, receipts, analytics)
-  - `/api/payments/*` - Payment processing and widgets
-  - `/api/ai/*` - AI-powered features
-  - `/api/calendar/*` - Calendar integrations
-  - `/api/import/*` - Data import functionality
+## External Dependencies
 
-**Database Schema:**
-- PostgreSQL database via Supabase
-- Drizzle ORM for type-safe database queries
-- Migration system for schema evolution (`drizzle-kit`)
-- Tables: clients, products, services, quotes, invoices, contracts, receipts, payments, business_profiles, bookings
-
-**Authentication & Authorization:**
-- Supabase Auth for user authentication
-- Bearer token-based API authentication
-- User ownership checks enforced at API level
-- AuthContext provides auth state to entire application
-
-**Data Access Patterns:**
-- Drizzle ORM queries with PostgreSQL dialect
-- Connection pooling via `postgres.js` client
-- Graceful degradation when database is not configured
-- Helper functions to check database status
-
-### External Dependencies
-
-**Authentication & Database:**
-- Supabase (PostgreSQL database + Auth)
-  - Project URL: Required in `NEXT_PUBLIC_SUPABASE_URL`
-  - Anon key: Required in `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-  - Database URL: Required in `DATABASE_URL`
-
-**Error Monitoring:**
-- Sentry for production error tracking
-- Custom error boundaries for client-side errors
-- Console logging for development debugging
-
-**UI Components:**
-- Radix UI - Accessible component primitives
-- Lucide React - Icon library
-- React Three Fiber & Drei - 3D graphics (for visual effects)
-- Sonner & custom toast system - Notifications
-
-**Development Tools:**
-- TypeScript for type checking
-- ESLint for code quality
-- Tailwind CSS for styling
-- Drizzle Kit for database migrations
-
-**Environment Configuration:**
-The application requires several environment variables:
-- `DATABASE_URL` - PostgreSQL connection string
-- `NEXT_PUBLIC_SUPABASE_URL` - Supabase project URL
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Supabase anonymous key
-- `SUPABASE_SERVICE_ROLE_KEY` - Supabase admin key (optional)
-- `NEXT_PUBLIC_APP_URL` - Application URL for OAuth callbacks
-
-**Deployment:**
-- Deployed on Replit (migrated from Vercel on October 25, 2025)
-- Development server runs on port 5000, bound to 0.0.0.0
-- Environment variables configured via Replit Secrets
-- Custom `vercel.json` configuration retained for potential future deployments
-
-## Recent Changes
-
-### October 26, 2025 - OCR Receipt Scanner Implementation (Task 9 Complete)
-**Task 9: OCR Receipt Reader with Tesseract.js**
-- Installed Tesseract.js library for optical character recognition
-- Created `ocr-processor` utility (`src/lib/utils/ocr-processor.ts`):
-  - `processReceiptImage()` function with real-time progress callback
-  - Enhanced amount detection regex supporting:
-    - Keyword-based: "Total: $123.45", "Amount £89.00"
-    - Symbol-only: "$56.78", "€99.99"
-    - Thousand separators: "€1,234.56"
-    - Multiple currencies: $, £, €
-  - Multi-format date parsing (ISO, MDY, short year formats)
-  - Smart day/month swapping when month > 12
-  - Auto-category inference based on keywords (7 categories)
-- Built `OCRReceiptUpload` component (`src/components/Receipts/OCRReceiptUpload.tsx`):
-  - Drag & drop file upload with click-to-browse fallback
-  - File validation (images only, max 10MB)
-  - Image preview before processing
-  - Real-time progress bar showing 0-100% OCR progress
-  - Editable form with all required fields:
-    - Vendor, Date, Amount, Currency (6 options), Category, Notes
-  - User review and correction of extracted data before saving
-  - Complete submission payload with all required fields
-  - Auto-refreshes receipt list on successful save
-  - Comprehensive error handling and toast notifications
-- Integrated into Receipts page:
-  - Added "Scan Receipt" button next to "New Receipt"
-  - Responsive button layout (stacks on mobile, side-by-side on desktop)
-  - State management with proper callbacks
-- Production-ready OCR workflow with robust parsing and validation
-
-### October 26, 2025 - Dashboard Analytics Implementation (Tasks 6-8 Complete)
-**Task 6: Interactive Analytics Dashboard with Recharts**
-- Created comprehensive `/api/lumenr/analytics` endpoint:
-  - Weekly revenue and invoice trends (7 days of data)
-  - Client growth tracking over time
-  - Weekly expenses trend data
-  - Quote status distribution (Pending/Sent/Accepted/Rejected)
-  - Recent activity feed (last 10 items)
-  - Dynamic AI insights based on real metrics
-- Completely rewrote `AnalyticsDashboard` component with all four required visualizations:
-  - **Revenue BarChart**: Dual bars showing weekly revenue ($) and invoice count
-  - **Client Growth AreaChart**: Gradient-filled area showing client acquisition trend
-  - **Expenses LineChart**: Dotted line showing weekly expense trends
-  - **Quote Status PieChart**: Multi-color pie with proper labels showing distribution
-- All charts use Recharts library with responsive containers
-- Implemented proper loading states, empty states, and error handling
-- Live data fetching from database with React Query
-- Consistent styling and tooltips across all visualizations
-
-**Task 7: Recent Activity Feed** (Implemented in Task 6)
-- Activity feed showing last 10 database events
-- Displays recent invoices and clients with timestamps
-- Real-time updates when new data is added
-- Clean card-based UI with type indicators
-
-**Task 8: AI Insights Panel** (Implemented in Task 6)
-- AI-powered recommendations based on real business metrics
-- Dynamic insights for revenue trends, pending invoices, new clients, quote status
-- Updates automatically as business data changes
-- Helpful contextual suggestions for business actions
-
-### October 26, 2025 - Client Management Enhancements (Tasks 1-5 Complete)
-**Task 1: Authentication Improvements**
-- Removed GitHub login option from login/signup pages
-- Made Google login button full-width for better UX
-- Added password confirmation field to signup form with Zod validation
-- Enhanced form validation and error handling
-
-**Task 2: Location Fields for Clients**
-- Added city, province, and country fields to clients database schema
-- Updated Client interface and all client forms
-- Implemented 3-column grid layout (City, Province/State, Country) in UI
-- Updated API POST/PUT handlers to persist location data
-- All location data properly flows from UI → API → Database
-
-**Task 3: Compact Client Cards**
-- Made client cards significantly more compact for better list viewing
-- Reduced spacing, padding, and text sizes throughout
-- Changed grid to 4 columns on XL screens (was 3)
-- Made entire card clickable with full keyboard accessibility
-- Added role="button", tabIndex, aria-label, and keyboard handlers (Enter/Space)
-- Visible focus indicators (focus-within:ring) for accessibility
-- Removed redundant "View Details" button
-
-**Task 4: Auto-Tax Calculation System**
-- Added `tax_rate` (NUMERIC 5,2) and `auto_calculate_tax` (BOOLEAN) columns to database
-- Created comprehensive tax-calculator utility with rates for 40+ jurisdictions:
-  - All Canadian provinces (GST, PST, HST)
-  - US states (Sales Tax)
-  - European countries (VAT)
-  - Australia, New Zealand
-- Implemented auto-calculation logic that works for:
-  - Province-based taxes (Canada, US)
-  - Country-level taxes (UK, EU, Australia, NZ)
-- Added UI toggle switch for auto-tax calculation
-- Tax rate input disabled during auto-calculation
-- Descriptive labels show tax breakdown (e.g., "HST 13%", "GST 5% + PST 7%")
-- Properly clears stale tax rates when switching to unsupported locations
-- Available in both create and edit client forms
-- Full data persistence through API and database
-
-**Task 5: Excel Import for Clients**
-- Installed xlsx library for Excel file parsing
-- Created excel-import utility with:
-  - Template generation with sample data for all client fields
-  - Excel file parsing with row-by-row validation
-  - Comprehensive error reporting with specific row numbers
-- Built bulk-import API endpoint (`/api/lumenr/clients/bulk-import`):
-  - Validates each client before database insertion
-  - Duplicate email detection with detailed error messages
-  - Maximum 1000 clients per import batch
-  - Returns structured results (successful count, failed count, error list)
-- Implemented two-step import wizard UI:
-  - Step 1: Download template with sample data
-  - Step 2: Upload and validate Excel file
-  - File validation (.xlsx, .xls only)
-  - Drag & drop file upload area
-  - Real-time progress indicators
-  - Detailed success/error reporting with row-specific feedback
-  - Toast notifications for immediate user feedback
-  - Auto-refresh client list on successful import
-  - Auto-close dialog on 100% success
-- Error handling at all levels:
-  - Parse-time validation errors displayed with row numbers
-  - API-level errors (duplicates, validation) properly surfaced
-  - Partial success scenarios handled gracefully
-  - Clear user messaging at every stage
-
-### October 25, 2025 - Database Configuration Fix
-**Fixed Supabase Connection Issues:**
-- Updated `src/db/index.ts` to use Transaction Pooler with `prepare: false` option
-- Created `.env` file with correct pooler connection string (port 6543)
-- Database now connects successfully to: `aws-1-us-east-2.pooler.supabase.com:6543`
-- All API endpoints (Clients, Invoices, Quotes, Receipts, Payments, Contracts) now working
-- Created Lumen AI chat page at `/lumen` with complete LumenR knowledge base
-
-**Technical Details:**
-- Supabase Transaction Pooler requires `prepare: false` in postgres.js client configuration
-- Must use pooler connection string (port 6543) instead of direct connection (port 5432)
-- Connection string format: `postgresql://postgres.[ref]:[password]@aws-1-[region].pooler.supabase.com:6543/postgres`
-
-### October 25, 2025 - Vercel to Replit Migration
-**Migration Summary:**
-- Migrated Next.js application from Vercel to Replit environment
-- Updated development and production scripts to use port 5000 with 0.0.0.0 binding
-- Resolved corrupted image asset (datatrack-logo.png) by replacing with text-based logo
-- Installed dependencies using npm with --legacy-peer-deps flag (due to date-fns/react-day-picker peer dependency conflict)
-- Configured Supabase environment variables via Replit Secrets
-- Set up development workflow to run Next.js dev server
-
-**Technical Details:**
-- Package manager: npm (detected from package-lock.json)
-- Node.js version: 20.x
-- Image assets: Replaced Image imports with gradient text logos for better compatibility
-- Files modified:
-  - `package.json` - Updated dev and start scripts
-  - `src/app/page.tsx` - Replaced logo image with text
-  - `src/app/chat/page.tsx` - Replaced logo image with text
-  - `src/components/Layout/TopBar.tsx` - Replaced logo image with text
-  - `src/components/Layout/AppSidebar.tsx` - Replaced logo image with text
-
-**Environment Variables:**
-All required Supabase credentials have been configured:
-- ✅ DATABASE_URL
-- ✅ NEXT_PUBLIC_SUPABASE_URL
-- ✅ NEXT_PUBLIC_SUPABASE_ANON_KEY
-- ✅ SUPABASE_SERVICE_ROLE_KEY
+-   **Authentication & Database:** Supabase (PostgreSQL, Supabase Auth).
+-   **Error Monitoring:** Sentry (production), custom error boundaries, console logging (development).
+-   **UI Components:** Radix UI, Lucide React (icons), React Three Fiber & Drei (3D graphics), Sonner (notifications).
+-   **Development Tools:** TypeScript, ESLint, Tailwind CSS, Drizzle Kit (database migrations).
+-   **Data Processing:** `xlsx` library (Excel parsing), Tesseract.js (OCR).
+-   **Charting:** Recharts.
