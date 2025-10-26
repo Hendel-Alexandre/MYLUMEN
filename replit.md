@@ -33,7 +33,7 @@ Preferred communication style: Simple, everyday language.
     -   **Product Management:** Product catalog with pricing, categories, active/inactive status, image URLs, inventory tracking, and full CRUD operations.
     -   **Service Management:** Service catalog with hourly rates, duration tracking, categories, active/inactive status, and full CRUD operations.
     -   **Billing & Payments:** Stripe integration for payment processing, checkout sessions, webhook handling for invoice payments, revenue tracking, and payment history.
-    -   **Receipt Management:** OCR receipt scanning with Tesseract.js for extracting vendor, date, and amount, and Excel import for receipts with validation.
+    -   **Receipt Management:** OCR receipt scanning with Tesseract.js for extracting vendor, date, and amount, Excel import for receipts with validation, Supabase Storage integration for receipt images with signed URLs, type distinction (expense vs. client receipts), and client assignment for tracking client-related expenses.
     -   **Analytics Dashboard:** Interactive charts for revenue, client growth, expenses, and quote status, alongside a recent activity feed and AI-powered insights.
     -   **Authentication:** Google OAuth integration, password confirmation for signup, and enhanced form validation.
     -   **Calendar & Bookings:** Full-featured scheduling with day/week views, Google Calendar bidirectional sync (import/export), idempotent updates using google_event_id tracking, timezone-aware event conversion, client assignment, status management (scheduled/completed/cancelled/rescheduled), and responsive mobile/desktop UI.
@@ -57,6 +57,12 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (October 26, 2025)
 
+### Receipt Enhancement Foundation (Tasks 1-3 of 8 Complete)
+-   **Database Schema:** Enhanced receipts table with `type` field ('expense' | 'client' with default 'expense'), optional `client_id` foreign key to clients table, and renamed `file_url` to `image_url` for consistency.
+-   **Storage Integration:** Created Supabase Storage helper (`src/lib/receipt-storage.ts`) for receipt image uploads with user-scoped organization, image validation, and signed URL generation.
+-   **API Enhancements:** Updated receipts API (GET/POST/PUT) to support type filtering, client association, image URL handling, and proper numeric conversion. Added validation for type transitions and client ID requirements.
+
+### Previous Enhancements
 -   **Stripe Payment Integration:** Added Stripe checkout sessions for invoice payments, idempotent webhook handling (using transactionRef to prevent duplicate payments), and billing dashboard showing revenue, pending payments, and payment history with graceful error handling.
 -   **Products Page:** Complete product catalog management with CRUD operations, category filtering, active/inactive status toggle, image URL support, inventory tracking (stock_quantity and track_inventory fields), and visual stock level indicators with color-coded badges.
 -   **Services Page:** Complete service catalog management with CRUD operations, hourly rate pricing, duration tracking (in minutes), category filtering, active/inactive status toggle, and service statistics dashboard.
