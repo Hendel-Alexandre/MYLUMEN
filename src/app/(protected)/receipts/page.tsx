@@ -557,6 +557,7 @@ export default function ReceiptsPage() {
           clientName={getClientName(selectedReceipt.clientId)}
           isOpen={!!selectedReceipt}
           onClose={() => setSelectedReceipt(null)}
+          onUpdate={fetchReceipts}
         />
       )}
     </div>

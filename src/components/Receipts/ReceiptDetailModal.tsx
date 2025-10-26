@@ -2,9 +2,11 @@
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { Receipt, Calendar, DollarSign, User, FileText, Image as ImageIcon, X } from 'lucide-react';
-import { useState } from 'react';
+import { Receipt, Calendar, DollarSign, User, FileText, Image as ImageIcon, Download, Upload, Loader2 } from 'lucide-react';
+import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
+import { uploadReceiptImage } from '@/lib/receipt-storage';
 
 interface ReceiptDetailModalProps {
   receipt: {
@@ -24,11 +26,14 @@ interface ReceiptDetailModalProps {
   clientName?: string | null;
   isOpen: boolean;
   onClose: () => void;
+  onUpdate?: () => void;
 }
 
-export default function ReceiptDetailModal({ receipt, clientName, isOpen, onClose }: ReceiptDetailModalProps) {
+export default function ReceiptDetailModal({ receipt, clientName, isOpen, onClose, onUpdate }: ReceiptDetailModalProps) {
   const [imageError, setImageError] = useState(false);
   const [imageLoading, setImageLoading] = useState(true);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const getCategoryColor = (category: string) => {
     const colors: { [key: string]: string } = {
@@ -51,6 +56,113 @@ export default function ReceiptDetailModal({ receipt, clientName, isOpen, onClos
     });
   };
 
+  const handleDownload = async () => {
+    if (!receipt.imageUrl) return;
+
+    try {
+      const response = await fetch(receipt.imageUrl);
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch image');
+      }
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `receipt-${receipt.vendor}-${receipt.date}.jpg`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      toast.success('Receipt image downloaded');
+    } catch (error) {
+      toast.error('Failed to download image');
+      console.error('Download error:', error);
+    }
+  };
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file');
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('Image must be less than 10MB');
+      return;
+    }
+
+    setIsUploading(true);
+
+    try {
+      const token = localStorage.getItem('bearer_token');
+      const userId = localStorage.getItem('user_id');
+      
+      if (!token) {
+        toast.error('Authentication required. Please log in again.');
+        return;
+      }
+      
+      if (!userId) {
+        toast.error('User not authenticated');
+        return;
+      }
+
+      toast.loading('Uploading receipt image...');
+      const uploadResult = await uploadReceiptImage({
+        file: file,
+        userId: userId,
+        fileName: file.name
+      });
+
+      if (!uploadResult.success) {
+        toast.dismiss();
+        toast.error(uploadResult.error || 'Failed to upload image');
+        return;
+      }
+
+      const imageUrl = uploadResult.publicUrl || null;
+      toast.dismiss();
+
+      const response = await fetch(`/api/lumenr/receipts?id=${receipt.id}`, {
+        method: 'PUT',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          imageUrl: imageUrl
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update receipt');
+      }
+
+      toast.success('Receipt image updated successfully!');
+      setImageError(false);
+      setImageLoading(true);
+      
+      if (onUpdate) {
+        onUpdate();
+      }
+      
+      onClose();
+
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to update receipt image');
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -62,30 +174,97 @@ export default function ReceiptDetailModal({ receipt, clientName, isOpen, onClos
         </DialogHeader>
 
         <div className="space-y-6">
-          {receipt.imageUrl && !imageError && (
-            <div className="relative rounded-lg overflow-hidden border border-border bg-muted">
-              {imageLoading && (
-                <div className="absolute inset-0 flex items-center justify-center bg-muted">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                </div>
-              )}
-              <img
-                src={receipt.imageUrl}
-                alt={`Receipt from ${receipt.vendor}`}
-                className="w-full max-h-[400px] object-contain"
-                onLoad={() => setImageLoading(false)}
-                onError={() => {
-                  setImageError(true);
-                  setImageLoading(false);
-                }}
-              />
+          {receipt.imageUrl && !imageError ? (
+            <div className="space-y-3">
+              <div className="relative rounded-lg overflow-hidden border border-border bg-muted">
+                {imageLoading && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-muted">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                  </div>
+                )}
+                <img
+                  src={receipt.imageUrl}
+                  alt={`Receipt from ${receipt.vendor}`}
+                  className="w-full max-h-[400px] object-contain"
+                  onLoad={() => setImageLoading(false)}
+                  onError={() => {
+                    setImageError(true);
+                    setImageLoading(false);
+                  }}
+                />
+              </div>
+              <div className="flex gap-2">
+                <Button 
+                  onClick={handleDownload} 
+                  variant="outline" 
+                  size="sm"
+                  className="flex-1"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Download Image
+                </Button>
+                <Button 
+                  onClick={() => fileInputRef.current?.click()} 
+                  variant="outline" 
+                  size="sm"
+                  className="flex-1"
+                  disabled={isUploading}
+                >
+                  {isUploading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Uploading...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="w-4 h-4 mr-2" />
+                      Update Image
+                    </>
+                  )}
+                </Button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                />
+              </div>
             </div>
-          )}
-
-          {receipt.imageUrl && imageError && (
-            <div className="rounded-lg border border-dashed border-border p-12 text-center bg-muted/50">
-              <ImageIcon className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-              <p className="text-sm text-muted-foreground">Image could not be loaded</p>
+          ) : (
+            <div className="space-y-3">
+              <div className="rounded-lg border border-dashed border-border p-12 text-center bg-muted/50">
+                <ImageIcon className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                <p className="text-sm text-muted-foreground mb-4">
+                  {imageError ? 'Image could not be loaded' : 'No image attached'}
+                </p>
+              </div>
+              <Button 
+                onClick={() => fileInputRef.current?.click()} 
+                variant="outline" 
+                size="sm"
+                className="w-full"
+                disabled={isUploading}
+              >
+                {isUploading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Uploading...
+                  </>
+                ) : (
+                  <>
+                    <Upload className="w-4 h-4 mr-2" />
+                    Attach Image
+                  </>
+                )}
+              </Button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileSelect}
+                className="hidden"
+              />
             </div>
           )}
 
