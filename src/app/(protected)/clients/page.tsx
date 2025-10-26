@@ -99,8 +99,9 @@ export default function ClientsPage() {
         throw new Error('Failed to fetch clients')
       }
       
-      const data = await response.json()
-      // Ensure data is always an array
+      const result = await response.json()
+      // API returns { success: true, data: [...] }
+      const data = result.success ? result.data : result
       setClients(Array.isArray(data) ? data : [])
     } catch (error: any) {
       toast.error(error.message || 'Failed to fetch clients')
@@ -123,18 +124,21 @@ export default function ClientsPage() {
       ])
 
       if (quotesRes.ok) {
-        const allQuotes = await quotesRes.json()
-        setClientQuotes(allQuotes.filter((q: any) => q.clientId === clientId))
+        const quotesResult = await quotesRes.json()
+        const allQuotes = quotesResult.success ? quotesResult.data : quotesResult
+        setClientQuotes(Array.isArray(allQuotes) ? allQuotes.filter((q: any) => q.clientId === clientId) : [])
       }
 
       if (invoicesRes.ok) {
-        const allInvoices = await invoicesRes.json()
-        setClientInvoices(allInvoices.filter((i: any) => i.clientId === clientId))
+        const invoicesResult = await invoicesRes.json()
+        const allInvoices = invoicesResult.success ? invoicesResult.data : invoicesResult
+        setClientInvoices(Array.isArray(allInvoices) ? allInvoices.filter((i: any) => i.clientId === clientId) : [])
       }
 
       if (contractsRes.ok) {
-        const allContracts = await contractsRes.json()
-        setClientContracts(allContracts.filter((c: any) => c.clientId === clientId))
+        const contractsResult = await contractsRes.json()
+        const allContracts = contractsResult.success ? contractsResult.data : contractsResult
+        setClientContracts(Array.isArray(allContracts) ? allContracts.filter((c: any) => c.clientId === clientId) : [])
       }
     } catch (error: any) {
       console.error('Error fetching client details:', error)
