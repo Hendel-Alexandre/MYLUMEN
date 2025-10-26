@@ -4,6 +4,7 @@ import { receipts } from '@/db/schema';
 import { eq, desc, gte, lte, and } from 'drizzle-orm';
 import { getAuthUser } from '@/lib/auth-api';
 import { jsonOk, jsonError } from '@/lib/api-utils';
+import { supabase } from '@/integrations/supabase/client';
 
 function isValidDateFormat(dateString: string): boolean {
   const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
@@ -12,6 +13,47 @@ function isValidDateFormat(dateString: string): boolean {
   }
   const date = new Date(dateString);
   return date instanceof Date && !isNaN(date.getTime());
+}
+
+async function getSignedUrlFromPath(imagePath: string | null): Promise<string | null> {
+  if (!imagePath || !supabase) return null;
+  
+  // Extract the storage path from either a full URL or just the path
+  let storagePath = imagePath;
+  
+  // If it's a full URL, extract just the path part
+  if (imagePath.includes('/storage/v1/object/')) {
+    const pathMatch = imagePath.match(/\/receipts\/(.+?)(?:\?|$)/);
+    if (pathMatch) {
+      storagePath = pathMatch[1];
+    }
+  } else if (imagePath.includes('/receipts/')) {
+    const pathMatch = imagePath.match(/\/receipts\/(.+?)(?:\?|$)/);
+    if (pathMatch) {
+      storagePath = pathMatch[1];
+    }
+  }
+  
+  // Remove bucket name if it's included
+  if (storagePath.startsWith('receipts/')) {
+    storagePath = storagePath.substring('receipts/'.length);
+  }
+  
+  try {
+    const { data, error } = await supabase.storage
+      .from('receipts')
+      .createSignedUrl(storagePath, 31536000); // 1 year
+      
+    if (error) {
+      console.error('[Receipts API] Error generating signed URL:', error);
+      return null;
+    }
+    
+    return data.signedUrl;
+  } catch (error) {
+    console.error('[Receipts API] Exception generating signed URL:', error);
+    return null;
+  }
 }
 
 export async function GET(request: NextRequest) {
@@ -40,10 +82,12 @@ export async function GET(request: NextRequest) {
         return jsonError('Receipt not found', 404);
       }
 
-      // Convert numeric strings to numbers for frontend
+      // Convert numeric strings to numbers and refresh signed URL
+      const signedUrl = await getSignedUrlFromPath(receipt[0].imageUrl);
       const formattedReceipt = {
         ...receipt[0],
-        amount: parseFloat(receipt[0].amount as any) || 0
+        amount: parseFloat(receipt[0].amount as any) || 0,
+        imageUrl: signedUrl || receipt[0].imageUrl // Use fresh signed URL if available
       };
 
       return jsonOk(formattedReceipt);
@@ -96,10 +140,14 @@ export async function GET(request: NextRequest) {
       .limit(limit)
       .offset(offset);
 
-    // Convert numeric strings to numbers for frontend
-    const formattedResults = results.map(receipt => ({
-      ...receipt,
-      amount: parseFloat(receipt.amount as any) || 0
+    // Convert numeric strings to numbers and refresh signed URLs for frontend
+    const formattedResults = await Promise.all(results.map(async (receipt) => {
+      const signedUrl = await getSignedUrlFromPath(receipt.imageUrl);
+      return {
+        ...receipt,
+        amount: parseFloat(receipt.amount as any) || 0,
+        imageUrl: signedUrl || receipt.imageUrl // Use fresh signed URL if available
+      };
     }));
 
     return jsonOk(formattedResults);

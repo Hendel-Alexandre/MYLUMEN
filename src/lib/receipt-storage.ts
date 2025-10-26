@@ -82,19 +82,29 @@ export async function uploadReceiptImage({
       };
     }
 
-    console.log('[Receipt Storage] Upload successful, getting public URL...');
+    console.log('[Receipt Storage] Upload successful, generating signed URL...');
 
-    // Get public URL
-    const { data: { publicUrl } } = supabase.storage
+    // Generate a signed URL (valid for 1 year)
+    const { data: signedUrlData, error: signedUrlError } = await supabase.storage
       .from(RECEIPT_BUCKET)
-      .getPublicUrl(data.path);
+      .createSignedUrl(data.path, 31536000); // 1 year in seconds
 
-    console.log('[Receipt Storage] Public URL obtained:', publicUrl);
+    if (signedUrlError) {
+      console.error('[Receipt Storage] Signed URL error:', signedUrlError);
+      // Fall back to just returning the path
+      return {
+        success: true,
+        path: data.path,
+        publicUrl: null
+      };
+    }
+
+    console.log('[Receipt Storage] Signed URL obtained');
 
     return {
       success: true,
       path: data.path,
-      publicUrl
+      publicUrl: signedUrlData.signedUrl
     };
 
   } catch (error) {
