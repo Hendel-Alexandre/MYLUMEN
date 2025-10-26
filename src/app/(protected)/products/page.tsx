@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Plus, Search, Package, MoreHorizontal, Edit, Trash2, 
-  DollarSign, Tag, Eye, EyeOff, Image as ImageIcon
+  DollarSign, Tag, Eye, EyeOff, Image as ImageIcon, 
+  Upload, Download, FileSpreadsheet, Link2, Copy
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -18,6 +19,11 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
+import { 
+  generateProductTemplate, 
+  parseProductExcel, 
+  exportProductsToExcel 
+} from '@/lib/utils/product-excel-import';
 
 interface Product {
   id: number;
@@ -56,6 +62,11 @@ export default function ProductsPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
+  const [importFile, setImportFile] = useState<File | null>(null);
+  const [importing, setImporting] = useState(false);
+  const [importResult, setImportResult] = useState<any>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [newProduct, setNewProduct] = useState({
     name: '',
@@ -179,6 +190,89 @@ export default function ProductsPage() {
     }
   };
 
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImportFile(file);
+      setImportResult(null);
+    }
+  };
+
+  const handleImport = async () => {
+    if (!importFile) {
+      toast.error('Please select a file to import');
+      return;
+    }
+
+    setImporting(true);
+    setImportResult(null);
+
+    try {
+      const result = await parseProductExcel(importFile);
+      
+      if (!result.success) {
+        setImportResult({ success: false, errors: result.errors });
+        toast.error('Import failed. Please check the errors below.');
+        return;
+      }
+
+      const token = localStorage.getItem('bearer_token');
+      const response = await fetch('/api/lumenr/products/bulk-import', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ products: result.data })
+      });
+
+      if (!response.ok) throw new Error('Failed to import products');
+
+      const importData = await response.json();
+      setImportResult({ success: true, imported: importData.imported, errors: importData.errors });
+      toast.success(`Successfully imported ${importData.imported} products`);
+      fetchProducts();
+      setImportFile(null);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to import products');
+      setImportResult({ success: false, errors: [error.message] });
+    } finally {
+      setImporting(false);
+    }
+  };
+
+  const handleExport = () => {
+    if (products.length === 0) {
+      toast.error('No products to export');
+      return;
+    }
+    exportProductsToExcel(products);
+    toast.success('Products exported successfully');
+  };
+
+  const generatePaymentLink = async (productId: number) => {
+    try {
+      const token = localStorage.getItem('bearer_token');
+      const response = await fetch('/api/lumenr/products/payment-link', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ productId })
+      });
+
+      if (!response.ok) throw new Error('Failed to generate payment link');
+
+      const data = await response.json();
+      await navigator.clipboard.writeText(data.paymentLink);
+      toast.success('Payment link copied to clipboard!');
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to generate payment link');
+    }
+  };
+
   useEffect(() => {
     fetchProducts();
   }, []);
@@ -210,13 +304,85 @@ export default function ProductsPage() {
           <p className="text-muted-foreground text-sm sm:text-base">Manage your product catalog</p>
         </div>
         
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="w-full sm:w-auto">
-              <Plus className="h-4 w-4 mr-2" />
-              Add Product
-            </Button>
-          </DialogTrigger>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" onClick={handleExport} className="w-full sm:w-auto">
+            <Download className="h-4 w-4 mr-2" />
+            Export
+          </Button>
+          <Dialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="w-full sm:w-auto">
+                <Upload className="h-4 w-4 mr-2" />
+                Import
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Import Products from Excel</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <p className="text-sm text-muted-foreground">
+                    Download the template, fill in your product data, and upload it here.
+                  </p>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      generateProductTemplate();
+                      toast.success('Template downloaded');
+                    }}
+                    className="w-full"
+                  >
+                    <FileSpreadsheet className="h-4 w-4 mr-2" />
+                    Download Template
+                  </Button>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="file-upload">Select Excel File</Label>
+                  <Input
+                    id="file-upload"
+                    type="file"
+                    accept=".xlsx,.xls"
+                    ref={fileInputRef}
+                    onChange={handleFileSelect}
+                  />
+                </div>
+                {importResult && (
+                  <div className={`p-4 rounded-md ${importResult.success ? 'bg-green-50 dark:bg-green-900/20 border border-green-200' : 'bg-red-50 dark:bg-red-900/20 border border-red-200'}`}>
+                    <p className={`font-semibold ${importResult.success ? 'text-green-800 dark:text-green-200' : 'text-red-800 dark:text-red-200'}`}>
+                      {importResult.success ? `Successfully imported ${importResult.imported} products!` : 'Import failed'}
+                    </p>
+                    {importResult.errors && importResult.errors.length > 0 && (
+                      <ul className="mt-2 text-sm text-red-700 dark:text-red-300 list-disc list-inside max-h-32 overflow-y-auto">
+                        {importResult.errors.map((error: any, index: number) => (
+                          <li key={index}>{typeof error === 'string' ? error : `Row ${error.row}: ${error.error}`}</li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                )}
+                <div className="flex justify-end gap-2">
+                  <Button variant="outline" onClick={() => {
+                    setIsImportDialogOpen(false);
+                    setImportFile(null);
+                    setImportResult(null);
+                  }}>
+                    Cancel
+                  </Button>
+                  <Button onClick={handleImport} disabled={!importFile || importing}>
+                    {importing ? 'Importing...' : 'Import Products'}
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="w-full sm:w-auto">
+                <Plus className="h-4 w-4 mr-2" />
+                Add Product
+              </Button>
+            </DialogTrigger>
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Add New Product</DialogTitle>
@@ -410,6 +576,12 @@ export default function ProductsPage() {
                         <><Eye className="h-4 w-4 mr-2" />Activate</>
                       )}
                     </DropdownMenuItem>
+                    {product.active && (
+                      <DropdownMenuItem onClick={() => generatePaymentLink(product.id)}>
+                        <Link2 className="h-4 w-4 mr-2" />
+                        Copy Payment Link
+                      </DropdownMenuItem>
+                    )}
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
                         <DropdownMenuItem onSelect={(e) => e.preventDefault()}>

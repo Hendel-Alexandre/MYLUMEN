@@ -55,7 +55,51 @@ Preferred communication style: Simple, everyday language.
 -   **Data Processing:** `xlsx` library (Excel parsing), Tesseract.js (OCR).
 -   **Charting:** Recharts.
 
-## Recent Changes (October 26, 2025)
+## Recent Changes (October 26, 2025 - Latest)
+
+### Product Payment Links
+-   **Stripe Checkout Integration:** Added payment link generation for active products with automatic Stripe checkout session creation
+-   **Payment Link API:** Created `/api/lumenr/products/payment-link` route that generates unique checkout URLs for products
+-   **Clipboard Integration:** One-click copy of payment links to clipboard for easy sharing with customers
+-   **UI Integration:** Added "Copy Payment Link" option to product dropdown menu (visible only for active products)
+-   **Features:** Supports quantity selection, automatic Stripe price creation, and secure checkout session generation
+
+### Excel Import/Export for Products and Services
+-   **Product Import/Export:**
+    -   Template generation with all required columns (name, description, price, category, SKU, etc.)
+    -   Row-by-row validation with detailed error reporting
+    -   Bulk import API (`/api/lumenr/products/bulk-import`) with validation and user ownership checks
+    -   Export current products to Excel with formatted columns and proper data types
+    -   UI dialog with upload interface, validation feedback, and progress indicators
+-   **Service Import/Export:**
+    -   Template generation for service catalog (name, description, unit price, billing type, category, etc.)
+    -   Validation for required fields (name, unit price, billing type)
+    -   Bulk import API (`/api/lumenr/services/bulk-import`) with server-side validation
+    -   Export services with duration conversion and formatted pricing
+    -   Matching UI components for seamless user experience
+-   **Utilities:** Created reusable Excel utilities (`product-excel-import.ts`, `service-excel-import.ts`) using xlsx library
+-   **Import Dialog Features:** File upload with accept filters, template download button, real-time validation feedback, error highlighting with row numbers, success/failure summary
+
+### Integrations Management UI
+-   **Settings Page Enhancement:** Added dedicated "Integrations" section in Settings page between Business Profile and Appearance
+-   **Integration Cards:** Visual cards for each integration showing:
+    -   Service icon and name
+    -   Connection status (Connected/Disconnected with visual indicators)
+    -   Description of integration purpose
+    -   Connect/Disconnect buttons with appropriate styling
+-   **Supported Integrations:**
+    -   **Google Calendar:** Sync appointments with Google Calendar (existing feature, UI for management added)
+    -   **Outlook Calendar:** Two-way sync with Microsoft Outlook Calendar (placeholder for future implementation)
+    -   **Email (Resend):** Send quotes and invoices via email (deferred pending API key)
+-   **UX Improvements:** Color-coded status indicators, responsive design for mobile/desktop, toast notifications for connection state changes
+
+## Recent Changes (October 26, 2025 - Previous)
+
+### Email Integration (Pending Setup)
+-   **Service:** Resend (email service for sending quotes, invoices, and documents to clients)
+-   **Status:** API key not yet configured - user will add RESEND_API_KEY later
+-   **Implementation Plan:** Email functionality code is ready but deferred until user provides API key
+-   **Features Ready:** Send quotes/invoices via email, attachment support for PDFs
 
 ### Database Setup & Migration (Critical Fix)
 -   **Database Tables Created:** All 11 missing database tables created successfully: `clients`, `products`, `services`, `quotes`, `invoices`, `contracts`, `receipts`, `payments`, `business_profiles`, `bookings`, and `user_mode_settings`.

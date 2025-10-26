@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -21,9 +21,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Plus, Edit, Trash2, Clock, DollarSign } from 'lucide-react';
+import { Plus, Edit, Trash2, Clock, DollarSign, Upload, Download, FileSpreadsheet } from 'lucide-react';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
+import { 
+  generateServiceTemplate, 
+  parseServiceExcel, 
+  exportServicesToExcel 
+} from '@/lib/utils/service-excel-import';
 
 interface Service {
   id: number;
@@ -61,6 +66,11 @@ export default function ServicesPage() {
   const [editingService, setEditingService] = useState<Service | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
+  const [importFile, setImportFile] = useState<File | null>(null);
+  const [importing, setImporting] = useState(false);
+  const [importResult, setImportResult] = useState<any>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [newService, setNewService] = useState({
     name: '',
@@ -209,6 +219,67 @@ export default function ServicesPage() {
     setIsEditDialogOpen(true);
   };
 
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImportFile(file);
+      setImportResult(null);
+    }
+  };
+
+  const handleImport = async () => {
+    if (!importFile) {
+      toast.error('Please select a file to import');
+      return;
+    }
+
+    setImporting(true);
+    setImportResult(null);
+
+    try {
+      const result = await parseServiceExcel(importFile);
+      
+      if (!result.success) {
+        setImportResult({ success: false, errors: result.errors });
+        toast.error('Import failed. Please check the errors below.');
+        return;
+      }
+
+      const token = localStorage.getItem('bearer_token');
+      const response = await fetch('/api/lumenr/services/bulk-import', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ services: result.data })
+      });
+
+      if (!response.ok) throw new Error('Failed to import services');
+
+      const importData = await response.json();
+      setImportResult({ success: true, imported: importData.imported, errors: importData.errors });
+      toast.success(`Successfully imported ${importData.imported} services`);
+      fetchServices();
+      setImportFile(null);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to import services');
+      setImportResult({ success: false, errors: [error.message] });
+    } finally {
+      setImporting(false);
+    }
+  };
+
+  const handleExport = () => {
+    if (services.length === 0) {
+      toast.error('No services to export');
+      return;
+    }
+    exportServicesToExcel(services);
+    toast.success('Services exported successfully');
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -232,10 +303,83 @@ export default function ServicesPage() {
             Manage your service catalog
           </p>
         </div>
-        <Button onClick={() => setIsCreateDialogOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Service
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={handleExport}>
+            <Download className="h-4 w-4 mr-2" />
+            Export
+          </Button>
+          <Dialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline">
+                <Upload className="h-4 w-4 mr-2" />
+                Import
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Import Services from Excel</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <p className="text-sm text-muted-foreground">
+                    Download the template, fill in your service data, and upload it here.
+                  </p>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      generateServiceTemplate();
+                      toast.success('Template downloaded');
+                    }}
+                    className="w-full"
+                  >
+                    <FileSpreadsheet className="h-4 w-4 mr-2" />
+                    Download Template
+                  </Button>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="file-upload">Select Excel File</Label>
+                  <Input
+                    id="file-upload"
+                    type="file"
+                    accept=".xlsx,.xls"
+                    ref={fileInputRef}
+                    onChange={handleFileSelect}
+                  />
+                </div>
+                {importResult && (
+                  <div className={`p-4 rounded-md ${importResult.success ? 'bg-green-50 dark:bg-green-900/20 border border-green-200' : 'bg-red-50 dark:bg-red-900/20 border border-red-200'}`}>
+                    <p className={`font-semibold ${importResult.success ? 'text-green-800 dark:text-green-200' : 'text-red-800 dark:text-red-200'}`}>
+                      {importResult.success ? `Successfully imported ${importResult.imported} services!` : 'Import failed'}
+                    </p>
+                    {importResult.errors && importResult.errors.length > 0 && (
+                      <ul className="mt-2 text-sm text-red-700 dark:text-red-300 list-disc list-inside max-h-32 overflow-y-auto">
+                        {importResult.errors.map((error: any, index: number) => (
+                          <li key={index}>{typeof error === 'string' ? error : `Row ${error.row}: ${error.error}`}</li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                )}
+                <div className="flex justify-end gap-2">
+                  <Button variant="outline" onClick={() => {
+                    setIsImportDialogOpen(false);
+                    setImportFile(null);
+                    setImportResult(null);
+                  }}>
+                    Cancel
+                  </Button>
+                  <Button onClick={handleImport} disabled={!importFile || importing}>
+                    {importing ? 'Importing...' : 'Import Services'}
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+          <Button onClick={() => setIsCreateDialogOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Service
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

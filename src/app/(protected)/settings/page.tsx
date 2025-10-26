@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
-import { User, Bell, Shield, Palette, Globe, LogOut, Crown, Building2, Upload as UploadIcon } from 'lucide-react'
+import { User, Bell, Shield, Palette, Globe, LogOut, Crown, Building2, Upload as UploadIcon, Plug, Calendar, Mail, CheckCircle, XCircle } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -49,6 +49,11 @@ export default function SettingsPage() {
   })
 
   const [isLoading, setIsLoading] = useState(false)
+  const [integrations, setIntegrations] = useState({
+    googleCalendar: { connected: false, name: 'Google Calendar' },
+    outlookCalendar: { connected: false, name: 'Outlook Calendar' },
+    email: { connected: false, name: 'Email (Resend)' }
+  })
 
   // Load profile data and business profile from localStorage/API on mount
   useEffect(() => {
@@ -394,6 +399,138 @@ export default function SettingsPage() {
                   {loadingBusiness ? 'Updating...' : 'Update Business Profile'}
                 </Button>
               </form>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Integrations */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.12 }}
+        >
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center text-lg sm:text-xl">
+                <Plug className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                Integrations
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Connect external services to enhance your LumenR experience
+              </p>
+
+              <Separator />
+
+              {/* Google Calendar Integration */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-start gap-3">
+                  <div className="mt-1">
+                    <Calendar className="h-5 w-5 text-blue-500" />
+                  </div>
+                  <div>
+                    <Label className="text-base">Google Calendar</Label>
+                    <p className="text-xs sm:text-sm text-muted-foreground">
+                      Sync your appointments with Google Calendar
+                    </p>
+                    {integrations.googleCalendar.connected && (
+                      <div className="flex items-center gap-1 mt-1">
+                        <CheckCircle className="h-3 w-3 text-green-500" />
+                        <span className="text-xs text-green-600 dark:text-green-400">Connected</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <Button 
+                  variant={integrations.googleCalendar.connected ? "outline" : "default"}
+                  onClick={() => {
+                    if (integrations.googleCalendar.connected) {
+                      setIntegrations({...integrations, googleCalendar: { ...integrations.googleCalendar, connected: false }});
+                      toast.success('Google Calendar disconnected');
+                    } else {
+                      toast.info('Google Calendar integration setup coming soon');
+                    }
+                  }}
+                  className="w-full sm:w-auto"
+                >
+                  {integrations.googleCalendar.connected ? 'Disconnect' : 'Connect'}
+                </Button>
+              </div>
+
+              <Separator />
+
+              {/* Outlook Calendar Integration */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-start gap-3">
+                  <div className="mt-1">
+                    <Calendar className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <Label className="text-base">Outlook Calendar</Label>
+                    <p className="text-xs sm:text-sm text-muted-foreground">
+                      Two-way sync with Microsoft Outlook Calendar
+                    </p>
+                    {integrations.outlookCalendar.connected && (
+                      <div className="flex items-center gap-1 mt-1">
+                        <CheckCircle className="h-3 w-3 text-green-500" />
+                        <span className="text-xs text-green-600 dark:text-green-400">Connected</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <Button 
+                  variant={integrations.outlookCalendar.connected ? "outline" : "default"}
+                  onClick={() => {
+                    if (integrations.outlookCalendar.connected) {
+                      setIntegrations({...integrations, outlookCalendar: { ...integrations.outlookCalendar, connected: false }});
+                      toast.success('Outlook Calendar disconnected');
+                    } else {
+                      toast.info('Outlook Calendar integration coming soon');
+                    }
+                  }}
+                  className="w-full sm:w-auto"
+                >
+                  {integrations.outlookCalendar.connected ? 'Disconnect' : 'Connect'}
+                </Button>
+              </div>
+
+              <Separator />
+
+              {/* Email Integration */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-start gap-3">
+                  <div className="mt-1">
+                    <Mail className="h-5 w-5 text-purple-500" />
+                  </div>
+                  <div>
+                    <Label className="text-base">Email (Resend)</Label>
+                    <p className="text-xs sm:text-sm text-muted-foreground">
+                      Send quotes and invoices via email
+                    </p>
+                    {integrations.email.connected && (
+                      <div className="flex items-center gap-1 mt-1">
+                        <CheckCircle className="h-3 w-3 text-green-500" />
+                        <span className="text-xs text-green-600 dark:text-green-400">Connected</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <Button 
+                  variant={integrations.email.connected ? "outline" : "default"}
+                  onClick={() => {
+                    if (integrations.email.connected) {
+                      setIntegrations({...integrations, email: { ...integrations.email, connected: false }});
+                      toast.success('Email integration disconnected');
+                    } else {
+                      toast.info('Email integration coming soon - API key needed');
+                    }
+                  }}
+                  className="w-full sm:w-auto"
+                >
+                  {integrations.email.connected ? 'Disconnect' : 'Connect'}
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </motion.div>
