@@ -31,7 +31,13 @@ export async function GET(request: NextRequest) {
         return jsonError('Product not found', 404);
       }
 
-      return jsonOk(product[0]);
+      // Convert numeric strings to numbers for frontend
+      const formattedProduct = {
+        ...product[0],
+        price: parseFloat(product[0].price as any) || 0
+      };
+
+      return jsonOk(formattedProduct);
     }
 
     // List products with filters
@@ -64,7 +70,13 @@ export async function GET(request: NextRequest) {
       .limit(limit)
       .offset(offset);
 
-    return jsonOk(results);
+    // Convert numeric strings to numbers for frontend
+    const formattedResults = results.map(product => ({
+      ...product,
+      price: parseFloat(product.price as any) || 0
+    }));
+
+    return jsonOk(formattedResults);
   } catch (error) {
     console.error('GET error:', error);
     return jsonError('Internal server error: ' + (error as Error).message, 500);

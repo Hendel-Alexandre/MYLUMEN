@@ -33,7 +33,13 @@ export async function GET(request: NextRequest) {
         return jsonError('Payment not found', 404);
       }
 
-      return jsonOk(payment[0]);
+      // Convert numeric strings to numbers for frontend
+      const formattedPayment = {
+        ...payment[0],
+        amount: parseFloat(payment[0].amount as any) || 0
+      };
+
+      return jsonOk(formattedPayment);
     }
 
     const limit = Math.min(parseInt(searchParams.get('limit') ?? '100'), 100);
@@ -70,7 +76,13 @@ export async function GET(request: NextRequest) {
 
     const results = await query.limit(limit).offset(offset);
 
-    return jsonOk(results);
+    // Convert numeric strings to numbers for frontend
+    const formattedResults = results.map(payment => ({
+      ...payment,
+      amount: parseFloat(payment.amount as any) || 0
+    }));
+
+    return jsonOk(formattedResults);
   } catch (error) {
     console.error('GET error:', error);
     return jsonError('Internal server error: ' + (error as Error).message, 500);

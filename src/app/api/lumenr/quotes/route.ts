@@ -34,7 +34,15 @@ export async function GET(request: NextRequest) {
         return jsonError('Quote not found', 404);
       }
 
-      return jsonOk(quote[0]);
+      // Convert numeric strings to numbers for frontend
+      const formattedQuote = {
+        ...quote[0],
+        subtotal: parseFloat(quote[0].subtotal as any) || 0,
+        tax: parseFloat(quote[0].tax as any) || 0,
+        total: parseFloat(quote[0].total as any) || 0
+      };
+
+      return jsonOk(formattedQuote);
     }
 
     const limit = Math.min(parseInt(searchParams.get('limit') ?? '100'), 100);
@@ -87,7 +95,15 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    return jsonOk(filteredResults);
+    // Convert numeric strings to numbers for frontend
+    const formattedResults = filteredResults.map(quote => ({
+      ...quote,
+      subtotal: parseFloat(quote.subtotal as any) || 0,
+      tax: parseFloat(quote.tax as any) || 0,
+      total: parseFloat(quote.total as any) || 0
+    }));
+
+    return jsonOk(formattedResults);
 
   } catch (error) {
     console.error('[API ERROR /api/lumenr/quotes GET]', error);

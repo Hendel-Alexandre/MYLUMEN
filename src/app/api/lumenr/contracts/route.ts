@@ -30,7 +30,13 @@ export async function GET(request: NextRequest) {
         return jsonError('Contract not found', 404);
       }
 
-      return jsonOk(contract[0]);
+      // Convert numeric strings to numbers for frontend
+      const formattedContract = {
+        ...contract[0],
+        value: contract[0].value !== null ? parseFloat(contract[0].value as any) : null
+      };
+
+      return jsonOk(formattedContract);
     }
 
     // List with pagination and filters
@@ -57,7 +63,13 @@ export async function GET(request: NextRequest) {
 
     const results = await query.limit(limit).offset(offset);
 
-    return jsonOk(results);
+    // Convert numeric strings to numbers for frontend
+    const formattedResults = results.map(contract => ({
+      ...contract,
+      value: contract.value !== null ? parseFloat(contract.value as any) : null
+    }));
+
+    return jsonOk(formattedResults);
   } catch (error) {
     console.error('GET error:', error);
     return jsonError('Internal server error: ' + (error as Error).message, 500);

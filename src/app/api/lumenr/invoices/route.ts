@@ -71,7 +71,15 @@ export async function GET(request: NextRequest) {
 
     const results = await query;
 
-    return jsonOk(results);
+    // Convert numeric strings to numbers for frontend
+    const formattedResults = results.map(invoice => ({
+      ...invoice,
+      subtotal: parseFloat(invoice.subtotal as any) || 0,
+      tax: parseFloat(invoice.tax as any) || 0,
+      total: parseFloat(invoice.total as any) || 0
+    }));
+
+    return jsonOk(formattedResults);
   } catch (error) {
     console.error('[API ERROR /api/lumenr/invoices GET]', error);
     return jsonError('Internal server error: ' + (error as Error).message, 500);

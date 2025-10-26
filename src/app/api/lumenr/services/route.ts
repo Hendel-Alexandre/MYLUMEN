@@ -31,7 +31,13 @@ export async function GET(request: NextRequest) {
         return jsonError('Service not found', 404);
       }
 
-      return jsonOk(service[0]);
+      // Convert numeric strings to numbers for frontend
+      const formattedService = {
+        ...service[0],
+        unitPrice: parseFloat(service[0].unitPrice as any) || 0
+      };
+
+      return jsonOk(formattedService);
     }
 
     // List with pagination and search
@@ -58,7 +64,13 @@ export async function GET(request: NextRequest) {
       .limit(limit)
       .offset(offset);
 
-    return jsonOk(results);
+    // Convert numeric strings to numbers for frontend
+    const formattedResults = results.map(service => ({
+      ...service,
+      unitPrice: parseFloat(service.unitPrice as any) || 0
+    }));
+
+    return jsonOk(formattedResults);
   } catch (error) {
     console.error('GET error:', error);
     return jsonError('Internal server error: ' + (error as Error).message, 500);

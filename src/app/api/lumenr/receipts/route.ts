@@ -40,7 +40,13 @@ export async function GET(request: NextRequest) {
         return jsonError('Receipt not found', 404);
       }
 
-      return jsonOk(receipt[0]);
+      // Convert numeric strings to numbers for frontend
+      const formattedReceipt = {
+        ...receipt[0],
+        amount: parseFloat(receipt[0].amount as any) || 0
+      };
+
+      return jsonOk(formattedReceipt);
     }
 
     const limit = Math.min(parseInt(searchParams.get('limit') ?? '100'), 100);
@@ -77,7 +83,13 @@ export async function GET(request: NextRequest) {
       .limit(limit)
       .offset(offset);
 
-    return jsonOk(results);
+    // Convert numeric strings to numbers for frontend
+    const formattedResults = results.map(receipt => ({
+      ...receipt,
+      amount: parseFloat(receipt.amount as any) || 0
+    }));
+
+    return jsonOk(formattedResults);
   } catch (error) {
     console.error('GET error:', error);
     return jsonError('Internal server error: ' + (error as Error).message, 500);
