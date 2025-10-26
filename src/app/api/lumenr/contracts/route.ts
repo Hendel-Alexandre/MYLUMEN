@@ -99,8 +99,9 @@ export async function POST(request: NextRequest) {
       return jsonError('title is required and must be a non-empty string', 400);
     }
 
-    if (!body.body || typeof body.body !== 'string' || body.body.trim() === '') {
-      return jsonError('body is required and must be a non-empty string', 400);
+    const contractBody = body.content || body.body;
+    if (!contractBody || typeof contractBody !== 'string' || contractBody.trim() === '') {
+      return jsonError('content/body is required and must be a non-empty string', 400);
     }
 
     // Validate clientId is a valid number
@@ -125,10 +126,17 @@ export async function POST(request: NextRequest) {
       clientId: parseInt(body.clientId),
       userId: userId,
       title: body.title.trim(),
-      body: body.body.trim(),
+      body: contractBody.trim(),
+      type: body.type || 'Service Agreement',
+      startDate: body.startDate || null,
+      endDate: body.endDate || null,
+      status: body.status || 'draft',
+      value: body.value ? parseFloat(body.value) : null,
       signedByClient: body.signedByClient ?? false,
+      signedByUser: body.signedByUser ?? false,
       signedAt: body.signedAt ?? null,
       pdfUrl: body.pdfUrl ?? null,
+      content: contractBody.trim(),
       createdAt: now,
       updatedAt: now,
     };
@@ -218,6 +226,35 @@ export async function PUT(request: NextRequest) {
 
     if (body.body !== undefined) {
       updates.body = body.body.trim();
+    }
+
+    if (body.type !== undefined) {
+      updates.type = body.type;
+    }
+
+    if (body.startDate !== undefined) {
+      updates.startDate = body.startDate;
+    }
+
+    if (body.endDate !== undefined) {
+      updates.endDate = body.endDate;
+    }
+
+    if (body.status !== undefined) {
+      updates.status = body.status;
+    }
+
+    if (body.value !== undefined) {
+      updates.value = body.value ? parseFloat(body.value) : null;
+    }
+
+    if (body.content !== undefined) {
+      updates.content = body.content.trim();
+      updates.body = body.content.trim();
+    }
+
+    if (body.signedByUser !== undefined) {
+      updates.signedByUser = body.signedByUser;
     }
 
     if (body.pdfUrl !== undefined) {

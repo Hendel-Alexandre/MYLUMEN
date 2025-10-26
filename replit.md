@@ -57,6 +57,14 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (October 26, 2025)
 
+### Invoicing & Quotes Enhancement (Complete)
+-   **LineItemsEditor Component:** Created reusable component for adding products/services as line items to invoices and quotes with auto-calculation of totals.
+-   **Invoice Line Items:** Full invoicing system with product/service line items, automatic subtotal/tax/total calculation based on client tax settings, status tracking (unpaid/partially_paid/paid/overdue/cancelled), and due date management.
+-   **Quote Line Items:** Enhanced quotes page with product/service line items, automatic total calculation, status tracking (draft/sent/accepted/declined/expired), and quote-to-invoice conversion feature.
+-   **Quote to Invoice Conversion:** One-click conversion of accepted quotes to invoices, preserving all line items and client information.
+-   **Tax Calculation:** Automatic tax calculation based on client's tax rate and auto-calculate settings.
+-   **Business Profile Integration:** Database-backed business profile settings (name, logo, currency, tax region, payment instructions, invoice footer) for use in invoices and contracts.
+
 ### Receipt Image Management Enhancement
 -   **Image Download:** Added download button to receipt detail modal with browser download trigger, descriptive filename generation (`receipt-{vendor}-{date}.jpg`), response validation, and user feedback via toast notifications.
 -   **Image Attachment/Update:** Users can now attach images to existing receipts or update existing images via the detail modal. Features include file type validation (image/*), size validation (<10MB), Supabase Storage upload using shared helper, PUT API update with bearer token auth, loading state during upload, early auth guards for better error messages, and automatic UI refresh after update.
