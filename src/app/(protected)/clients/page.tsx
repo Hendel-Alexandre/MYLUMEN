@@ -10,6 +10,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { AutocompleteInput } from '@/components/ui/autocomplete-input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
@@ -379,26 +380,35 @@ export default function ClientsPage() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="company">Company</Label>
-                    <Input
+                    <AutocompleteInput
                       id="company"
+                      fieldName="company"
+                      context="clients"
                       value={newClient.company}
                       onChange={(e) => setNewClient({ ...newClient, company: e.target.value })}
+                      placeholder="e.g., Acme Corp"
                     />
                   </div>
                   <div className="space-y-2 col-span-2">
                     <Label htmlFor="address">Address</Label>
-                    <Input
+                    <AutocompleteInput
                       id="address"
+                      fieldName="address"
+                      context="clients"
                       value={newClient.address}
                       onChange={(e) => setNewClient({ ...newClient, address: e.target.value })}
+                      placeholder="e.g., 123 Main St"
                     />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="city">City</Label>
-                    <Input
+                    <AutocompleteInput
                       id="city"
+                      fieldName="city"
+                      context="clients"
                       value={newClient.city}
                       onChange={(e) => setNewClient({ ...newClient, city: e.target.value })}
+                      placeholder="e.g., New York"
                     />
                   </div>
                   <div className="space-y-2">

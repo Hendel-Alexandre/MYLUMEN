@@ -24,22 +24,31 @@ export async function POST(req: NextRequest) {
     for (let i = 0; i < servicesData.length; i++) {
       const service = servicesData[i];
       try {
-        // Validate unit price and duration
-        if (service.unitPrice !== undefined && service.unitPrice < 0) {
-          throw new Error('Unit price cannot be negative');
+        // Validate unit price (required, must be a positive number)
+        const unitPrice = Number(service.unitPrice);
+        if (!Number.isFinite(unitPrice) || unitPrice <= 0) {
+          throw new Error('Unit price must be a positive number');
         }
-        if (service.duration !== undefined && service.duration !== null && service.duration < 0) {
-          throw new Error('Duration cannot be negative');
+
+        // Validate duration (optional, must be a positive number if provided)
+        let duration = null;
+        const durationValue = service.duration;
+        if (durationValue !== undefined && durationValue !== null && durationValue !== '') {
+          const dur = Number(durationValue);
+          if (!Number.isFinite(dur) || dur <= 0) {
+            throw new Error('Duration must be a positive number');
+          }
+          duration = dur;
         }
 
         const result = await db.insert(services).values({
           userId,
           name: service.name,
           description: service.description || null,
-          unitPrice: service.unitPrice,
+          unitPrice: unitPrice,
           currency: service.currency || 'USD',
           category: service.category || null,
-          duration: service.duration ?? null,
+          duration: duration,
           active: service.active !== undefined ? service.active : true,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),

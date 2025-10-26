@@ -24,21 +24,33 @@ export async function POST(req: NextRequest) {
     for (let i = 0; i < productsData.length; i++) {
       const product = productsData[i];
       try {
-        // Validate stock quantity
-        if (product.stockQuantity !== undefined && product.stockQuantity !== null && product.stockQuantity < 0) {
-          throw new Error('Stock quantity cannot be negative');
+        // Validate price (required, must be a positive number)
+        const price = Number(product.price);
+        if (!Number.isFinite(price) || price <= 0) {
+          throw new Error('Price must be a positive number');
+        }
+
+        // Validate stock quantity (optional, must be a non-negative number if provided)
+        let stockQuantity = null;
+        const stockQtyValue = product.stockQuantity;
+        if (stockQtyValue !== undefined && stockQtyValue !== null && stockQtyValue !== '') {
+          const qty = Number(stockQtyValue);
+          if (!Number.isFinite(qty) || qty < 0) {
+            throw new Error('Stock quantity must be a non-negative number');
+          }
+          stockQuantity = qty;
         }
 
         const result = await db.insert(products).values({
           userId,
           name: product.name,
           description: product.description || null,
-          price: product.price,
+          price: price,
           category: product.category || null,
           imageUrl: product.imageUrl || null,
           active: product.active !== undefined ? product.active : true,
           trackInventory: product.trackInventory || false,
-          stockQuantity: product.stockQuantity ?? null,
+          stockQuantity: stockQuantity,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         }).returning();
