@@ -71,14 +71,17 @@ Preferred communication style: Simple, everyday language.
     -   Bulk import API (`/api/lumenr/products/bulk-import`) with validation and user ownership checks
     -   Export current products to Excel with formatted columns and proper data types
     -   UI dialog with upload interface, validation feedback, and progress indicators
+    -   **Comprehensive Numeric Validation:** Number.isFinite() checks reject NaN, Infinity, and non-numeric strings; required fields (price) must be > 0; optional fields (stockQuantity) validated as >= 0 when provided; empty strings treated as null for optional fields; normalized numeric storage without string coercion
 -   **Service Import/Export:**
     -   Template generation for service catalog (name, description, unit price, billing type, category, etc.)
     -   Validation for required fields (name, unit price, billing type)
     -   Bulk import API (`/api/lumenr/services/bulk-import`) with server-side validation
     -   Export services with duration conversion and formatted pricing
     -   Matching UI components for seamless user experience
+    -   **Comprehensive Numeric Validation:** Number.isFinite() checks for unitPrice and duration; required fields (unitPrice) must be > 0; optional fields (duration) validated as > 0 when provided; empty strings treated as null for optional fields; database-native numeric type storage
 -   **Utilities:** Created reusable Excel utilities (`product-excel-import.ts`, `service-excel-import.ts`) using xlsx library
 -   **Import Dialog Features:** File upload with accept filters, template download button, real-time validation feedback, error highlighting with row numbers, success/failure summary
+-   **Data Integrity:** Multiple architect reviews ensured production-ready validation: invalid inputs rejected with clear errors, normalized values stored, no string-to-number conversion issues, proper handling of optional vs required fields
 
 ### Integrations Management UI
 -   **Settings Page Enhancement:** Added dedicated "Integrations" section in Settings page between Business Profile and Appearance
@@ -92,6 +95,18 @@ Preferred communication style: Simple, everyday language.
     -   **Outlook Calendar:** Two-way sync with Microsoft Outlook Calendar (placeholder for future implementation)
     -   **Email (Resend):** Send quotes and invoices via email (deferred pending API key)
 -   **UX Improvements:** Color-coded status indicators, responsive design for mobile/desktop, toast notifications for connection state changes
+
+### AI-Powered Autofill
+-   **Intelligent Form Assistance:** AI-powered autocomplete that learns from previous entries to suggest values as users type
+-   **useAutofill Hook:** Custom React hook managing suggestion storage, retrieval, and frequency/recency-based ranking algorithm
+-   **AutocompleteInput Component:** Reusable input component with dropdown suggestions, keyboard navigation (arrow keys, Enter, Escape), and automatic learning from new entries
+-   **Client Form Integration:** Fully integrated into clients form for three key fields:
+    -   Company/Organization name suggestions
+    -   Address suggestions
+    -   City suggestions
+-   **Data Storage:** Uses localStorage with namespace isolation per field type, preventing cross-contamination of suggestions
+-   **Smart Ranking:** Suggestions ranked by combination of frequency (how often used) and recency (when last used), ensuring most relevant suggestions appear first
+-   **Privacy-First:** All learning data stored locally in user's browser, no server-side tracking of form entries
 
 ## Recent Changes (October 26, 2025 - Previous)
 
