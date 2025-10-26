@@ -58,7 +58,7 @@ interface Invoice {
 const STATUS_OPTIONS = ['unpaid', 'partially_paid', 'paid', 'cancelled', 'overdue']
 
 export default function InvoicesPage() {
-  const { hasAccess, needsUpgrade, isTrialing, daysRemaining } = useSubscription()
+  const { hasAccess, needsUpgrade, isTrialing, daysRemaining, loading: subscriptionLoading } = useSubscription()
   const [invoices, setInvoices] = useState<Invoice[]>([])
   const [clients, setClients] = useState<Client[]>([])
   const [loading, setLoading] = useState(true)
@@ -67,6 +67,9 @@ export default function InvoicesPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null)
+  
+  // Proper access check: must have active subscription AND not need upgrade AND not during loading
+  const canCreateInvoice = !subscriptionLoading && !needsUpgrade && (hasAccess || (isTrialing && daysRemaining > 0))
   
   const [newInvoice, setNewInvoice] = useState({
     clientId: '',
@@ -317,9 +320,11 @@ export default function InvoicesPage() {
         </div>
         
         <Dialog open={isDialogOpen} onOpenChange={(open) => {
-          if (!hasAccess && open) {
-            toast.error('Trial Expired', {
-              description: 'Please upgrade your plan to create new invoices.'
+          if (!canCreateInvoice && open) {
+            toast.error('Subscription Required', {
+              description: needsUpgrade 
+                ? 'Your trial has expired. Please upgrade to create invoices.'
+                : 'Please wait while we verify your subscription...'
             })
             return
           }
@@ -332,17 +337,22 @@ export default function InvoicesPage() {
                   <DialogTrigger asChild>
                     <Button 
                       className="bg-gradient-primary hover:opacity-90 w-full sm:w-auto"
-                      disabled={!hasAccess}
+                      disabled={!canCreateInvoice}
                     >
-                      {!hasAccess ? <Lock className="h-4 w-4 mr-2" /> : <Plus className="h-4 w-4 mr-2" />}
+                      {needsUpgrade ? <Lock className="h-4 w-4 mr-2" /> : <Plus className="h-4 w-4 mr-2" />}
                       New Invoice
                     </Button>
                   </DialogTrigger>
                 </div>
               </TooltipTrigger>
-              {!hasAccess && (
+              {needsUpgrade && (
                 <TooltipContent>
-                  <p>Trial expired. <Link href="/billing" className="underline">Upgrade</Link> to create invoices.</p>
+                  <p>Trial expired. <Link href="/billing" className="underline">Upgrade now</Link> to create invoices.</p>
+                </TooltipContent>
+              )}
+              {subscriptionLoading && (
+                <TooltipContent>
+                  <p>Verifying subscription...</p>
                 </TooltipContent>
               )}
             </Tooltip>
