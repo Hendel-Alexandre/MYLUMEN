@@ -100,8 +100,11 @@ export default function ClientsPage() {
       }
       
       const result = await response.json()
+      console.log('[Clients Page] API Response:', result)
       // API returns { success: true, data: [...] }
       const data = result.success ? result.data : result
+      console.log('[Clients Page] Extracted data:', data)
+      console.log('[Clients Page] Is array?', Array.isArray(data), 'Length:', data?.length)
       setClients(Array.isArray(data) ? data : [])
     } catch (error: any) {
       toast.error(error.message || 'Failed to fetch clients')

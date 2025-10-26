@@ -70,6 +70,8 @@ export async function GET(request: NextRequest) {
     }
 
     const results = await query.limit(limit).offset(offset);
+    
+    console.log(`[DEBUG /api/lumenr/clients GET] Returning ${results.length} clients for user ${userId}`);
 
     return jsonOk(results);
   } catch (error) {
