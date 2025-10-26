@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
       return jsonError('User ID cannot be provided in request body', 400);
     }
 
-    const { name, description, unitPrice, currency } = body;
+    const { name, description, unitPrice, currency, category, duration, active } = body;
 
     // Validate required fields
     if (!name || name.trim() === '') {
@@ -96,6 +96,16 @@ export async function POST(request: NextRequest) {
       return jsonError('Unit price must be a positive number', 400);
     }
 
+    // Validate and parse duration if provided
+    let parsedDuration = null;
+    if (duration !== undefined && duration !== null) {
+      const durationNum = parseInt(duration);
+      if (isNaN(durationNum) || durationNum <= 0 || !Number.isInteger(Number(duration))) {
+        return jsonError('Duration must be a positive integer', 400);
+      }
+      parsedDuration = durationNum;
+    }
+
     // Prepare insert data
     const now = new Date().toISOString();
     const insertData = {
@@ -103,6 +113,9 @@ export async function POST(request: NextRequest) {
       description: description ? description.trim() : null,
       unitPrice: parsedPrice,
       currency: currency || 'USD',
+      category: category || null,
+      duration: parsedDuration,
+      active: active !== undefined ? active : true,
       userId: userId,
       createdAt: now,
       updatedAt: now,
@@ -150,7 +163,7 @@ export async function PUT(request: NextRequest) {
       return jsonError('Service not found', 404);
     }
 
-    const { name, description, unitPrice, currency } = body;
+    const { name, description, unitPrice, currency, category, duration, active } = body;
 
     // Validate unitPrice if provided
     if (unitPrice !== undefined && unitPrice !== null) {
@@ -182,6 +195,26 @@ export async function PUT(request: NextRequest) {
 
     if (currency !== undefined) {
       updateData.currency = currency;
+    }
+
+    if (category !== undefined) {
+      updateData.category = category || null;
+    }
+
+    if (duration !== undefined) {
+      if (duration !== null) {
+        const parsedDuration = parseInt(duration);
+        if (isNaN(parsedDuration) || parsedDuration <= 0 || !Number.isInteger(Number(duration))) {
+          return jsonError('Duration must be a positive integer', 400);
+        }
+        updateData.duration = parsedDuration;
+      } else {
+        updateData.duration = null;
+      }
+    }
+
+    if (active !== undefined) {
+      updateData.active = active;
     }
 
     const updatedService = await db

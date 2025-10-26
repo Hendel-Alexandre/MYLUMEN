@@ -30,7 +30,8 @@ Preferred communication style: Simple, everyday language.
 -   **Key Features:**
     -   **Client Management:** Comprehensive client profiles, location fields, compact cards, and auto-tax calculation based on jurisdiction.
     -   **Client Import:** Bulk import clients via Excel with template generation, row-by-row validation, and error reporting.
-    -   **Product Management:** Product catalog with pricing, categories, active/inactive status, image URLs, and full CRUD operations.
+    -   **Product Management:** Product catalog with pricing, categories, active/inactive status, image URLs, inventory tracking, and full CRUD operations.
+    -   **Service Management:** Service catalog with hourly rates, duration tracking, categories, active/inactive status, and full CRUD operations.
     -   **Billing & Payments:** Stripe integration for payment processing, checkout sessions, webhook handling for invoice payments, revenue tracking, and payment history.
     -   **Receipt Management:** OCR receipt scanning with Tesseract.js for extracting vendor, date, and amount, and Excel import for receipts with validation.
     -   **Analytics Dashboard:** Interactive charts for revenue, client growth, expenses, and quote status, alongside a recent activity feed and AI-powered insights.
@@ -58,5 +59,7 @@ Preferred communication style: Simple, everyday language.
 
 -   **Stripe Payment Integration:** Added Stripe checkout sessions for invoice payments, idempotent webhook handling (using transactionRef to prevent duplicate payments), and billing dashboard showing revenue, pending payments, and payment history with graceful error handling.
 -   **Products Page:** Complete product catalog management with CRUD operations, category filtering, active/inactive status toggle, image URL support, inventory tracking (stock_quantity and track_inventory fields), and visual stock level indicators with color-coded badges.
+-   **Services Page:** Complete service catalog management with CRUD operations, hourly rate pricing, duration tracking (in minutes), category filtering, active/inactive status toggle, and service statistics dashboard.
+-   **Database Schema Updates:** Enhanced services table with category, duration (integer), and active (boolean) fields for better service management.
 -   **Billing Dashboard Improvements:** Enhanced error handling with partial data loading, inline error banners with retry functionality, and graceful degradation when individual API calls fail.
 -   **Navigation Enhancement:** Added Products, Services, and Billing links to the Financial section of the sidebar navigation.
