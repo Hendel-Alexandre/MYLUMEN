@@ -16,6 +16,8 @@ import { toast } from 'sonner'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import { ClientTimeline } from '@/components/Dashboard/ClientTimeline'
+import { Switch } from '@/components/ui/switch'
+import { calculateTaxRate, getTaxDescription } from '@/lib/utils/tax-calculator'
 
 interface Client {
   id: number
@@ -28,6 +30,8 @@ interface Client {
   city: string | null
   province: string | null
   country: string | null
+  taxRate: string | null
+  autoCalculateTax: boolean | null
   userId: string
   createdAt: string
   updatedAt: string
@@ -83,8 +87,30 @@ export default function ClientsPage() {
     address: '',
     city: '',
     province: '',
-    country: ''
+    country: '',
+    taxRate: '',
+    autoCalculateTax: false
   })
+
+  useEffect(() => {
+    if (newClient.autoCalculateTax) {
+      const calculatedRate = calculateTaxRate(newClient.country, newClient.province);
+      setNewClient(prev => ({ 
+        ...prev, 
+        taxRate: calculatedRate !== null ? calculatedRate.toString() : ''
+      }));
+    }
+  }, [newClient.country, newClient.province, newClient.autoCalculateTax]);
+
+  useEffect(() => {
+    if (editingClient && editingClient.autoCalculateTax) {
+      const calculatedRate = calculateTaxRate(editingClient.country, editingClient.province);
+      setEditingClient(prev => prev ? { 
+        ...prev, 
+        taxRate: calculatedRate !== null ? calculatedRate.toString() : ''
+      } : null);
+    }
+  }, [editingClient?.country, editingClient?.province, editingClient?.autoCalculateTax]);
 
   const fetchClients = async () => {
     try {
@@ -181,7 +207,9 @@ export default function ClientsPage() {
         address: '',
         city: '',
         province: '',
-        country: ''
+        country: '',
+        taxRate: '',
+        autoCalculateTax: false
       })
       setIsDialogOpen(false)
       fetchClients()
@@ -395,6 +423,40 @@ export default function ClientsPage() {
                 />
               </div>
 
+              <div className="border-t pt-4 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="autoCalculateTax">Auto-Calculate Tax</Label>
+                    <p className="text-sm text-muted-foreground">Automatically calculate tax rate based on location</p>
+                  </div>
+                  <Switch
+                    id="autoCalculateTax"
+                    checked={newClient.autoCalculateTax}
+                    onCheckedChange={(checked) => setNewClient({ ...newClient, autoCalculateTax: checked })}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="taxRate">Tax Rate (%)</Label>
+                  <Input
+                    id="taxRate"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    max="100"
+                    value={newClient.taxRate}
+                    onChange={(e) => setNewClient({ ...newClient, taxRate: e.target.value })}
+                    placeholder="13.00"
+                    disabled={newClient.autoCalculateTax}
+                  />
+                  {newClient.autoCalculateTax && newClient.country && (
+                    <p className="text-xs text-muted-foreground">
+                      {getTaxDescription(newClient.country, newClient.province) || 'No tax rate found for this location'}
+                    </p>
+                  )}
+                </div>
+              </div>
+
               <div className="flex justify-end space-x-2">
                 <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                   Cancel
@@ -521,6 +583,40 @@ export default function ClientsPage() {
                   rows={2}
                   placeholder="123 Main Street, Apt 4B"
                 />
+              </div>
+
+              <div className="border-t pt-4 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="editAutoCalculateTax">Auto-Calculate Tax</Label>
+                    <p className="text-sm text-muted-foreground">Automatically calculate tax rate based on location</p>
+                  </div>
+                  <Switch
+                    id="editAutoCalculateTax"
+                    checked={editingClient?.autoCalculateTax || false}
+                    onCheckedChange={(checked) => setEditingClient({ ...editingClient, autoCalculateTax: checked })}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="editTaxRate">Tax Rate (%)</Label>
+                  <Input
+                    id="editTaxRate"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    max="100"
+                    value={editingClient?.taxRate || ''}
+                    onChange={(e) => setEditingClient({ ...editingClient, taxRate: e.target.value })}
+                    placeholder="13.00"
+                    disabled={editingClient?.autoCalculateTax || false}
+                  />
+                  {editingClient?.autoCalculateTax && editingClient?.country && (
+                    <p className="text-xs text-muted-foreground">
+                      {getTaxDescription(editingClient.country, editingClient.province) || 'No tax rate found for this location'}
+                    </p>
+                  )}
+                </div>
               </div>
 
               <div className="flex justify-end space-x-2">

@@ -12,6 +12,8 @@ export const clients = pgTable('clients', {
   city: text('city'),
   province: text('province'),
   country: text('country'),
+  taxRate: numeric('tax_rate', { precision: 5, scale: 2 }),
+  autoCalculateTax: boolean('auto_calculate_tax').default(false),
   userId: text('user_id').notNull(),
   createdAt: timestamp('created_at', { mode: 'string' }).notNull(),
   updatedAt: timestamp('updated_at', { mode: 'string' }).notNull(),

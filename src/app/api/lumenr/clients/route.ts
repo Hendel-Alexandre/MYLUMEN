@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
       return jsonError('User ID cannot be provided in request body', 400);
     }
 
-    const { name, email, phone, company, taxId, address, city, province, country } = body;
+    const { name, email, phone, company, taxId, address, city, province, country, taxRate, autoCalculateTax } = body;
 
     // Validate required fields
     if (!name || !name.trim()) {
@@ -124,6 +124,8 @@ export async function POST(request: NextRequest) {
         city: city?.trim() || null,
         province: province?.trim() || null,
         country: country?.trim() || null,
+        taxRate: taxRate ? String(taxRate) : null,
+        autoCalculateTax: autoCalculateTax || false,
         userId,
         createdAt: now,
         updatedAt: now
@@ -171,7 +173,7 @@ export async function PUT(request: NextRequest) {
       return jsonError('Client not found', 404);
     }
 
-    const { name, email, phone, company, taxId, address, city, province, country } = body;
+    const { name, email, phone, company, taxId, address, city, province, country, taxRate, autoCalculateTax } = body;
 
     // Validate email format if provided
     if (email) {
@@ -194,6 +196,8 @@ export async function PUT(request: NextRequest) {
     if (city !== undefined) updates.city = city?.trim() || null;
     if (province !== undefined) updates.province = province?.trim() || null;
     if (country !== undefined) updates.country = country?.trim() || null;
+    if (taxRate !== undefined) updates.taxRate = taxRate ? String(taxRate) : null;
+    if (autoCalculateTax !== undefined) updates.autoCalculateTax = autoCalculateTax;
 
     const updatedClient = await db.update(clients)
       .set(updates)
