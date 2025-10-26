@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Plus, Search, Receipt, MoreHorizontal, Edit, Trash2, Upload, DollarSign, Calendar, Scan, FileSpreadsheet } from 'lucide-react'
+import { Plus, Search, Receipt, MoreHorizontal, Edit, Trash2, Upload, DollarSign, Calendar, Scan, FileSpreadsheet, Image, User } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -14,9 +14,10 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import OCRReceiptUpload from '@/components/Receipts/OCRReceiptUpload'
 import { ReceiptExcelImport } from '@/components/Receipts/ReceiptExcelImport'
+import ReceiptDetailModal from '@/components/Receipts/ReceiptDetailModal'
 
 interface ReceiptItem {
   id: number
@@ -26,30 +27,61 @@ interface ReceiptItem {
   amount: number
   currency: string
   date: string
-  description: string | null
+  notes: string | null
+  type: 'expense' | 'client'
+  clientId: number | null
   imageUrl: string | null
   createdAt: string
   updatedAt: string
+}
+
+interface Client {
+  id: number
+  name: string
+  email: string
 }
 
 const CATEGORIES = ['Office Supplies', 'Travel', 'Meals', 'Software', 'Marketing', 'Utilities', 'Other']
 
 export default function ReceiptsPage() {
   const [receipts, setReceipts] = useState<ReceiptItem[]>([])
+  const [clients, setClients] = useState<Client[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [categoryFilter, setCategoryFilter] = useState<string>('all')
+  const [activeTab, setActiveTab] = useState<'expense' | 'client'>('expense')
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isOCRDialogOpen, setIsOCRDialogOpen] = useState(false)
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false)
+  const [selectedReceipt, setSelectedReceipt] = useState<ReceiptItem | null>(null)
   const [newReceipt, setNewReceipt] = useState({
     vendor: '',
     category: 'Office Supplies',
     amount: '',
     currency: 'USD',
     date: new Date().toISOString().split('T')[0],
-    description: ''
+    notes: '',
+    clientId: ''
   })
+
+  const fetchClients = async () => {
+    try {
+      const token = localStorage.getItem('bearer_token')
+      if (!token) return
+
+      const response = await fetch('/api/lumenr/clients', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+
+      if (response.ok) {
+        const result = await response.json()
+        const data = result.success ? result.data : result
+        setClients(Array.isArray(data) ? data : [])
+      }
+    } catch (error) {
+      console.error('Failed to fetch clients:', error)
+    }
+  }
 
   const fetchReceipts = async () => {
     try {
@@ -58,7 +90,7 @@ export default function ReceiptsPage() {
         throw new Error('Authentication required')
       }
       
-      const response = await fetch('/api/lumenr/receipts', {
+      const response = await fetch(`/api/lumenr/receipts?type=${activeTab}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       })
       
@@ -80,6 +112,11 @@ export default function ReceiptsPage() {
   const createReceipt = async (e: React.FormEvent) => {
     e.preventDefault()
 
+    if (activeTab === 'client' && !newReceipt.clientId) {
+      toast.error('Please select a client')
+      return
+    }
+
     try {
       const token = localStorage.getItem('bearer_token')
       const amount = parseFloat(newReceipt.amount)
@@ -96,7 +133,9 @@ export default function ReceiptsPage() {
           amount,
           currency: newReceipt.currency,
           date: newReceipt.date,
-          description: newReceipt.description || null
+          type: activeTab,
+          clientId: activeTab === 'client' ? parseInt(newReceipt.clientId) : null,
+          notes: newReceipt.notes || null
         })
       })
 
@@ -112,7 +151,8 @@ export default function ReceiptsPage() {
         amount: '',
         currency: 'USD',
         date: new Date().toISOString().split('T')[0],
-        description: ''
+        notes: '',
+        clientId: ''
       })
       setIsDialogOpen(false)
       fetchReceipts()
@@ -141,8 +181,12 @@ export default function ReceiptsPage() {
   }
 
   useEffect(() => {
-    fetchReceipts()
+    fetchClients()
   }, [])
+
+  useEffect(() => {
+    fetchReceipts()
+  }, [activeTab])
 
   const getCategoryColor = (category: string) => {
     const colors: { [key: string]: string } = {
@@ -157,10 +201,16 @@ export default function ReceiptsPage() {
     return colors[category] || 'bg-gray-500'
   }
 
+  const getClientName = (clientId: number | null) => {
+    if (!clientId) return null
+    const client = clients.find(c => c.id === clientId)
+    return client?.name || 'Unknown Client'
+  }
+
   const filteredReceipts = receipts.filter(receipt => {
     const matchesSearch = 
       receipt.vendor.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      receipt.description?.toLowerCase().includes(searchTerm.toLowerCase())
+      receipt.notes?.toLowerCase().includes(searchTerm.toLowerCase())
     
     const matchesCategory = categoryFilter === 'all' || receipt.category === categoryFilter
 
@@ -216,7 +266,7 @@ export default function ReceiptsPage() {
             </DialogTrigger>
             <DialogContent className="max-w-2xl">
               <DialogHeader>
-                <DialogTitle>Create New Receipt</DialogTitle>
+                <DialogTitle>Create New {activeTab === 'expense' ? 'Expense' : 'Client'} Receipt</DialogTitle>
               </DialogHeader>
               <form onSubmit={createReceipt} className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -247,6 +297,24 @@ export default function ReceiptsPage() {
                     </Select>
                   </div>
                 </div>
+
+                {activeTab === 'client' && (
+                  <div className="space-y-2">
+                    <Label htmlFor="client">Client *</Label>
+                    <Select value={newReceipt.clientId} onValueChange={(value) => setNewReceipt({ ...newReceipt, clientId: value })}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a client" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {clients.map(client => (
+                          <SelectItem key={client.id} value={client.id.toString()}>
+                            {client.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="space-y-2">
@@ -286,11 +354,11 @@ export default function ReceiptsPage() {
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="description">Description</Label>
+                  <Label htmlFor="notes">Notes</Label>
                   <Textarea
-                    id="description"
-                    value={newReceipt.description}
-                    onChange={(e) => setNewReceipt({ ...newReceipt, description: e.target.value })}
+                    id="notes"
+                    value={newReceipt.notes}
+                    onChange={(e) => setNewReceipt({ ...newReceipt, notes: e.target.value })}
                     rows={3}
                     placeholder="Additional details about the expense..."
                   />
@@ -308,139 +376,173 @@ export default function ReceiptsPage() {
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Search receipts..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'expense' | 'client')} className="space-y-6">
+        <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsTrigger value="expense">
+            <Receipt className="h-4 w-4 mr-2" />
+            My Expenses
+          </TabsTrigger>
+          <TabsTrigger value="client">
+            <User className="h-4 w-4 mr-2" />
+            Client Receipts
+          </TabsTrigger>
+        </TabsList>
+
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search receipts..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+
+          <Tabs value={categoryFilter} onValueChange={setCategoryFilter} className="w-full sm:w-auto">
+            <TabsList className="flex-wrap h-auto">
+              <TabsTrigger value="all">All</TabsTrigger>
+              {CATEGORIES.map(cat => (
+                <TabsTrigger key={cat} value={cat}>
+                  {cat}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
         </div>
 
-        <Tabs value={categoryFilter} onValueChange={setCategoryFilter} className="w-full sm:w-auto">
-          <TabsList className="flex-wrap h-auto">
-            <TabsTrigger value="all">All</TabsTrigger>
-            {CATEGORIES.map(cat => (
-              <TabsTrigger key={cat} value={cat}>
-                {cat}
-              </TabsTrigger>
+        <div className="bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-950 dark:to-red-950 p-4 rounded-lg border">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">Total {activeTab === 'expense' ? 'Expenses' : 'Client Receipts'}</p>
+              <p className="text-2xl font-bold">${totalExpenses.toFixed(2)}</p>
+            </div>
+            <div className="text-sm text-muted-foreground">
+              {filteredReceipts.length} receipt{filteredReceipts.length !== 1 ? 's' : ''}
+            </div>
+          </div>
+        </div>
+
+        <TabsContent value={activeTab} className="mt-0">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredReceipts.map((receipt) => (
+              <motion.div
+                key={receipt.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                whileHover={{ scale: 1.02 }}
+                className="h-full"
+              >
+                <Card 
+                  className="h-full hover:shadow-lg transition-all duration-300 cursor-pointer"
+                  onClick={() => setSelectedReceipt(receipt)}
+                >
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <div className="flex items-center space-x-2 flex-1 min-w-0">
+                      <Receipt className="h-5 w-5 text-primary flex-shrink-0" />
+                      <CardTitle className="text-lg font-semibold truncate">
+                        {receipt.vendor}
+                      </CardTitle>
+                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                        <Button variant="ghost" size="sm" className="flex-shrink-0">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete Receipt
+                            </DropdownMenuItem>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This action cannot be undone. This will permanently delete the receipt
+                                from "{receipt.vendor}".
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => deleteReceipt(receipt.id)}>
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <Badge className={`${getCategoryColor(receipt.category)} text-white`}>
+                        {receipt.category}
+                      </Badge>
+                      <span className="text-lg font-bold flex items-center gap-1">
+                        <DollarSign className="h-4 w-4" />
+                        {Number(receipt.amount || 0).toFixed(2)}
+                      </span>
+                    </div>
+
+                    {receipt.type === 'client' && receipt.clientId && (
+                      <div className="flex items-center text-sm text-muted-foreground">
+                        <User className="h-4 w-4 mr-2" />
+                        {getClientName(receipt.clientId)}
+                      </div>
+                    )}
+
+                    <div className="flex items-center text-sm text-muted-foreground">
+                      <Calendar className="h-4 w-4 mr-2" />
+                      {new Date(receipt.date).toLocaleDateString()}
+                    </div>
+
+                    {receipt.imageUrl && (
+                      <div className="flex items-center text-sm text-blue-600">
+                        <Image className="h-4 w-4 mr-2" />
+                        Has image
+                      </div>
+                    )}
+
+                    {receipt.notes && (
+                      <p className="text-sm text-muted-foreground line-clamp-2 pt-2 border-t">
+                        {receipt.notes}
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
+              </motion.div>
             ))}
-          </TabsList>
-        </Tabs>
-      </div>
-
-      <div className="bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-950 dark:to-red-950 p-4 rounded-lg border">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm text-muted-foreground">Total Expenses</p>
-            <p className="text-2xl font-bold">${totalExpenses.toFixed(2)}</p>
           </div>
-          <div className="text-sm text-muted-foreground">
-            {filteredReceipts.length} receipt{filteredReceipts.length !== 1 ? 's' : ''}
-          </div>
-        </div>
-      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredReceipts.map((receipt) => (
-          <motion.div
-            key={receipt.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            whileHover={{ scale: 1.02 }}
-            className="h-full"
-          >
-            <Card className="h-full hover:shadow-lg transition-all duration-300">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <div className="flex items-center space-x-2 flex-1 min-w-0">
-                  <Receipt className="h-5 w-5 text-primary flex-shrink-0" />
-                  <CardTitle className="text-lg font-semibold truncate">
-                    {receipt.vendor}
-                  </CardTitle>
-                </div>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="flex-shrink-0">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Delete Receipt
-                        </DropdownMenuItem>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            This action cannot be undone. This will permanently delete the receipt
-                            from "{receipt.vendor}".
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => deleteReceipt(receipt.id)}>
-                            Delete
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <Badge className={`${getCategoryColor(receipt.category)} text-white`}>
-                    {receipt.category}
-                  </Badge>
-                  <span className="text-lg font-bold flex items-center gap-1">
-                    <DollarSign className="h-4 w-4" />
-                    {Number(receipt.amount || 0).toFixed(2)}
-                  </span>
-                </div>
-
-                <div className="flex items-center text-sm text-muted-foreground">
-                  <Calendar className="h-4 w-4 mr-2" />
-                  {new Date(receipt.date).toLocaleDateString()}
-                </div>
-
-                {receipt.description && (
-                  <p className="text-sm text-muted-foreground line-clamp-2 pt-2 border-t">
-                    {receipt.description}
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))}
-      </div>
-
-      {filteredReceipts.length === 0 && (
-        <div className="text-center py-12">
-          <Receipt className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <h3 className="text-lg font-semibold mb-2">No receipts found</h3>
-          <p className="text-muted-foreground mb-4">
-            {searchTerm ? 'No receipts match your search.' : 'Create your first receipt to get started.'}
-          </p>
-          {!searchTerm && (
-            <Button onClick={() => setIsDialogOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Create Receipt
-            </Button>
+          {filteredReceipts.length === 0 && (
+            <div className="text-center py-12">
+              <Receipt className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-semibold mb-2">No receipts found</h3>
+              <p className="text-muted-foreground mb-4">
+                {searchTerm ? 'No receipts match your search.' : `Create your first ${activeTab === 'expense' ? 'expense' : 'client'} receipt to get started.`}
+              </p>
+              {!searchTerm && (
+                <Button onClick={() => setIsDialogOpen(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create Receipt
+                </Button>
+              )}
+            </div>
           )}
-        </div>
-      )}
+        </TabsContent>
+      </Tabs>
 
       <OCRReceiptUpload
         isOpen={isOCRDialogOpen}
         onClose={() => setIsOCRDialogOpen(false)}
         onSuccess={fetchReceipts}
         categories={CATEGORIES}
+        receiptType={activeTab}
+        clients={clients}
       />
 
       <ReceiptExcelImport
@@ -448,6 +550,15 @@ export default function ReceiptsPage() {
         onOpenChange={setIsImportDialogOpen}
         onImportSuccess={fetchReceipts}
       />
+
+      {selectedReceipt && (
+        <ReceiptDetailModal
+          receipt={selectedReceipt}
+          clientName={getClientName(selectedReceipt.clientId)}
+          isOpen={!!selectedReceipt}
+          onClose={() => setSelectedReceipt(null)}
+        />
+      )}
     </div>
   )
 }

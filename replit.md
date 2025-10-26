@@ -57,10 +57,15 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (October 26, 2025)
 
-### Receipt Enhancement Foundation (Tasks 1-3 of 8 Complete)
+### Receipt Enhancement Complete (All 8 Tasks)
 -   **Database Schema:** Enhanced receipts table with `type` field ('expense' | 'client' with default 'expense'), optional `client_id` foreign key to clients table, and renamed `file_url` to `image_url` for consistency.
 -   **Storage Integration:** Created Supabase Storage helper (`src/lib/receipt-storage.ts`) for receipt image uploads with user-scoped organization, image validation, and signed URL generation.
 -   **API Enhancements:** Updated receipts API (GET/POST/PUT) to support type filtering, client association, image URL handling, and proper numeric conversion. Added validation for type transitions and client ID requirements.
+-   **Camera Capture:** OCR component now supports getUserMedia camera capture with environment-facing mode, dual-mode toggle (Upload File / Use Camera), real-time video preview, and proper stream cleanup.
+-   **Image Upload Workflow:** Integrated Supabase Storage upload into OCR form submission with loading feedback, error handling, and publicUrl persistence to database.
+-   **Split View UI:** Redesigned receipts page with tabs for "My Expenses" (type='expense') and "Client Receipts" (type='client'), type-based filtering, client selection for client receipts, and separate totals per tab.
+-   **Receipt Detail Modal:** Full-screen modal displaying receipt images with loading states, formatted display of all fields, category-colored badges, and conditional client name display.
+-   **End-to-End Testing:** Complete flow from camera capture/file upload → OCR processing → image storage → database persistence → display in appropriate tab with image viewing capability.
 
 ### Previous Enhancements
 -   **Stripe Payment Integration:** Added Stripe checkout sessions for invoice payments, idempotent webhook handling (using transactionRef to prevent duplicate payments), and billing dashboard showing revenue, pending payments, and payment history with graceful error handling.
