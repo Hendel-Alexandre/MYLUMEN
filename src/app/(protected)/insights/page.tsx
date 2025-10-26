@@ -98,18 +98,30 @@ export default function InsightsPage() {
       const date = new Date(p.processed_at)
       return date.getMonth() === currentMonth && date.getFullYear() === currentYear
     })
-    .reduce((sum, p) => sum + p.amount, 0)
+    .reduce((sum, p) => {
+      const amount = typeof p.amount === 'number' && !isNaN(p.amount) ? p.amount : 0
+      return sum + amount
+    }, 0)
 
   const pendingInvoices = invoices.filter(i => i.status === 'pending' || i.status === 'sent')
-  const pendingAmount = pendingInvoices.reduce((sum, i) => sum + i.total, 0)
+  const pendingAmount = pendingInvoices.reduce((sum, i) => {
+    const total = typeof i.total === 'number' && !isNaN(i.total) ? i.total : 0
+    return sum + total
+  }, 0)
 
-  const totalExpenses = receipts.reduce((sum, r) => sum + r.amount, 0)
+  const totalExpenses = receipts.reduce((sum, r) => {
+    const amount = typeof r.amount === 'number' && !isNaN(r.amount) ? r.amount : 0
+    return sum + amount
+  }, 0)
   const expensesThisMonth = receipts
     .filter(r => {
       const date = new Date(r.date)
       return date.getMonth() === currentMonth && date.getFullYear() === currentYear
     })
-    .reduce((sum, r) => sum + r.amount, 0)
+    .reduce((sum, r) => {
+      const amount = typeof r.amount === 'number' && !isNaN(r.amount) ? r.amount : 0
+      return sum + amount
+    }, 0)
 
   const profitMargin = revenueThisMonth - expensesThisMonth
 
@@ -121,14 +133,18 @@ export default function InsightsPage() {
         const date = new Date(p.processed_at)
         return date.getMonth() === i && date.getFullYear() === currentYear
       })
-      .reduce((sum, p) => sum + p.amount, 0)
+      .reduce((sum, p) => {
+        const amount = typeof p.amount === 'number' && !isNaN(p.amount) ? p.amount : 0
+        return sum + amount
+      }, 0)
     return { month, revenue }
   })
 
   // Expenses by category
   const expensesByCategory = receipts.reduce((acc: any, r) => {
     const category = r.category || 'Other'
-    acc[category] = (acc[category] || 0) + r.amount
+    const amount = typeof r.amount === 'number' && !isNaN(r.amount) ? r.amount : 0
+    acc[category] = (acc[category] || 0) + amount
     return acc
   }, {})
 

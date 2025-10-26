@@ -167,7 +167,10 @@ export default function ReceiptsPage() {
     return matchesSearch && matchesCategory
   })
 
-  const totalExpenses = filteredReceipts.reduce((sum, r) => sum + r.amount, 0)
+  const totalExpenses = filteredReceipts.reduce((sum, r) => {
+    const amount = typeof r.amount === 'number' && !isNaN(r.amount) ? r.amount : 0
+    return sum + amount
+  }, 0)
 
   if (loading) {
     return (
