@@ -16,6 +16,8 @@ import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import OCRReceiptUpload from '@/components/Receipts/OCRReceiptUpload'
+import { ReceiptExcelImport } from '@/components/Receipts/ReceiptExcelImport'
+import { FileSpreadsheet } from 'lucide-react'
 
 interface ReceiptItem {
   id: number
@@ -40,6 +42,7 @@ export default function ReceiptsPage() {
   const [categoryFilter, setCategoryFilter] = useState<string>('all')
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isOCRDialogOpen, setIsOCRDialogOpen] = useState(false)
+  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false)
   const [newReceipt, setNewReceipt] = useState({
     vendor: '',
     category: 'Office Supplies',
@@ -184,6 +187,15 @@ export default function ReceiptsPage() {
         </div>
         
         <div className="flex gap-2 w-full sm:w-auto">
+          <Button 
+            onClick={() => setIsImportDialogOpen(true)}
+            variant="outline"
+            className="flex-1 sm:flex-initial"
+          >
+            <FileSpreadsheet className="h-4 w-4 mr-2" />
+            Import Excel
+          </Button>
+
           <Button 
             onClick={() => setIsOCRDialogOpen(true)}
             variant="outline"
@@ -426,6 +438,12 @@ export default function ReceiptsPage() {
         onClose={() => setIsOCRDialogOpen(false)}
         onSuccess={fetchReceipts}
         categories={CATEGORIES}
+      />
+
+      <ReceiptExcelImport
+        open={isImportDialogOpen}
+        onOpenChange={setIsImportDialogOpen}
+        onImportSuccess={fetchReceipts}
       />
     </div>
   )
