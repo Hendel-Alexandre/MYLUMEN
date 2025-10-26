@@ -88,34 +88,37 @@ export default function ReceiptDetailModal({ receipt, clientName, isOpen, onClos
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Validate file type
     if (!file.type.startsWith('image/')) {
       toast.error('Please select an image file');
       return;
     }
 
+    // Validate file size
     if (file.size > 10 * 1024 * 1024) {
       toast.error('Image must be less than 10MB');
       return;
     }
 
+    // Validate authentication
+    const token = localStorage.getItem('bearer_token');
+    if (!token) {
+      toast.error('Authentication required. Please log in again.');
+      return;
+    }
+    
+    if (!user?.id) {
+      toast.error('User not authenticated');
+      return;
+    }
+
+    // All validations passed, start upload
     setIsUploading(true);
+    const toastId = toast.loading('Uploading receipt image...');
 
     try {
-      const token = localStorage.getItem('bearer_token');
-      
-      if (!token) {
-        toast.error('Authentication required. Please log in again.');
-        return;
-      }
-      
-      if (!user?.id) {
-        toast.error('User not authenticated');
-        return;
-      }
-      
       const userId = user.id;
 
-      toast.loading('Uploading receipt image...');
       const uploadResult = await uploadReceiptImage({
         file: file,
         userId: userId,
@@ -123,13 +126,12 @@ export default function ReceiptDetailModal({ receipt, clientName, isOpen, onClos
       });
 
       if (!uploadResult.success) {
-        toast.dismiss();
+        toast.dismiss(toastId);
         toast.error(uploadResult.error || 'Failed to upload image');
         return;
       }
 
       const imageUrl = uploadResult.publicUrl || null;
-      toast.dismiss();
 
       const response = await fetch(`/api/lumenr/receipts?id=${receipt.id}`, {
         method: 'PUT',
@@ -146,6 +148,7 @@ export default function ReceiptDetailModal({ receipt, clientName, isOpen, onClos
         throw new Error('Failed to update receipt');
       }
 
+      toast.dismiss(toastId);
       toast.success('Receipt image updated successfully!');
       setImageError(false);
       setImageLoading(true);
@@ -157,6 +160,7 @@ export default function ReceiptDetailModal({ receipt, clientName, isOpen, onClos
       onClose();
 
     } catch (error: any) {
+      toast.dismiss(toastId);
       toast.error(error.message || 'Failed to update receipt image');
     } finally {
       setIsUploading(false);
