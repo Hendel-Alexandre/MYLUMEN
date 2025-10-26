@@ -18,7 +18,9 @@ import {
   CreditCard,
   TrendingUp,
   Sparkles,
-  CalendarCheck
+  CalendarCheck,
+  Package,
+  Briefcase
 } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -55,11 +57,14 @@ const lumenrNavigation = [
     label: 'Financial',
     items: [
       { title: 'Clients', url: '/clients', icon: UserCircle, tourId: 'clients' },
+      { title: 'Products', url: '/products', icon: Package },
+      { title: 'Services', url: '/services', icon: Briefcase },
       { title: 'Quotes', url: '/quotes', icon: FileSignature, tourId: 'quotes' },
       { title: 'Invoices', url: '/invoices', icon: FileText, tourId: 'invoices' },
       { title: 'Contracts', url: '/contracts', icon: FileSignature },
       { title: 'Receipts', url: '/receipts', icon: Receipt },
       { title: 'Payments', url: '/payments', icon: CreditCard },
+      { title: 'Billing', url: '/billing', icon: CreditCard },
     ]
   },
   {

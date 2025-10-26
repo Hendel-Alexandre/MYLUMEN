@@ -27,6 +27,8 @@ export const products = pgTable('products', {
   category: text('category'),
   imageUrl: text('image_url'),
   active: boolean('active').notNull().default(true),
+  stockQuantity: integer('stock_quantity').default(0),
+  trackInventory: boolean('track_inventory').default(false),
   userId: text('user_id').notNull(),
   createdAt: timestamp('created_at', { mode: 'string' }).notNull(),
   updatedAt: timestamp('updated_at', { mode: 'string' }).notNull(),

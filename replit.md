@@ -30,6 +30,8 @@ Preferred communication style: Simple, everyday language.
 -   **Key Features:**
     -   **Client Management:** Comprehensive client profiles, location fields, compact cards, and auto-tax calculation based on jurisdiction.
     -   **Client Import:** Bulk import clients via Excel with template generation, row-by-row validation, and error reporting.
+    -   **Product Management:** Product catalog with pricing, categories, active/inactive status, image URLs, and full CRUD operations.
+    -   **Billing & Payments:** Stripe integration for payment processing, checkout sessions, webhook handling for invoice payments, revenue tracking, and payment history.
     -   **Receipt Management:** OCR receipt scanning with Tesseract.js for extracting vendor, date, and amount, and Excel import for receipts with validation.
     -   **Analytics Dashboard:** Interactive charts for revenue, client growth, expenses, and quote status, alongside a recent activity feed and AI-powered insights.
     -   **Authentication:** Google OAuth integration, password confirmation for signup, and enhanced form validation.
@@ -45,8 +47,15 @@ Preferred communication style: Simple, everyday language.
 ## External Dependencies
 
 -   **Authentication & Database:** Supabase (PostgreSQL, Supabase Auth).
+-   **Payment Processing:** Stripe (@stripe/stripe-js, stripe) for secure payment processing and checkout sessions.
 -   **Error Monitoring:** Sentry (production), custom error boundaries, console logging (development).
 -   **UI Components:** Radix UI, Lucide React (icons), React Three Fiber & Drei (3D graphics), Sonner (notifications).
 -   **Development Tools:** TypeScript, ESLint, Tailwind CSS, Drizzle Kit (database migrations).
 -   **Data Processing:** `xlsx` library (Excel parsing), Tesseract.js (OCR).
 -   **Charting:** Recharts.
+
+## Recent Changes (October 26, 2025)
+
+-   **Stripe Payment Integration:** Added Stripe checkout sessions for invoice payments, webhook handling for payment confirmations, and billing dashboard showing revenue, pending payments, and payment history.
+-   **Products Page:** Complete product catalog management with CRUD operations, category filtering, active/inactive status toggle, image URL support, and price management.
+-   **Navigation Enhancement:** Added Products, Services, and Billing links to the Financial section of the sidebar navigation.
