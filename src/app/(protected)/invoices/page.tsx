@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Plus, Search, FileText, MoreHorizontal, Edit, Trash2, Eye, Download, Send, CheckCircle } from 'lucide-react'
+import { Plus, Search, FileText, MoreHorizontal, Edit, Trash2, Eye, Download, Send, CheckCircle, Lock } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -15,7 +15,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import LineItemsEditor from '@/components/LineItems/LineItemsEditor'
+import { useSubscription } from '@/hooks/useSubscription'
+import Link from 'next/link'
 
 interface Client {
   id: number
@@ -55,6 +58,7 @@ interface Invoice {
 const STATUS_OPTIONS = ['unpaid', 'partially_paid', 'paid', 'cancelled', 'overdue']
 
 export default function InvoicesPage() {
+  const { hasAccess, needsUpgrade, isTrialing, daysRemaining } = useSubscription()
   const [invoices, setInvoices] = useState<Invoice[]>([])
   const [clients, setClients] = useState<Client[]>([])
   const [loading, setLoading] = useState(true)
@@ -307,15 +311,42 @@ export default function InvoicesPage() {
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Invoices</h1>
           <p className="text-muted-foreground text-sm sm:text-base">Create and manage your invoices</p>
+          {isTrialing && daysRemaining > 0 && (
+            <p className="text-xs text-amber-600 mt-1">Trial: {daysRemaining} days remaining</p>
+          )}
         </div>
         
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-gradient-primary hover:opacity-90 w-full sm:w-auto">
-              <Plus className="h-4 w-4 mr-2" />
-              New Invoice
-            </Button>
-          </DialogTrigger>
+        <Dialog open={isDialogOpen} onOpenChange={(open) => {
+          if (!hasAccess && open) {
+            toast.error('Trial Expired', {
+              description: 'Please upgrade your plan to create new invoices.'
+            })
+            return
+          }
+          setIsDialogOpen(open)
+        }}>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div>
+                  <DialogTrigger asChild>
+                    <Button 
+                      className="bg-gradient-primary hover:opacity-90 w-full sm:w-auto"
+                      disabled={!hasAccess}
+                    >
+                      {!hasAccess ? <Lock className="h-4 w-4 mr-2" /> : <Plus className="h-4 w-4 mr-2" />}
+                      New Invoice
+                    </Button>
+                  </DialogTrigger>
+                </div>
+              </TooltipTrigger>
+              {!hasAccess && (
+                <TooltipContent>
+                  <p>Trial expired. <Link href="/billing" className="underline">Upgrade</Link> to create invoices.</p>
+                </TooltipContent>
+              )}
+            </Tooltip>
+          </TooltipProvider>
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Create New Invoice</DialogTitle>
