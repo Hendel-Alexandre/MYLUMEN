@@ -16,11 +16,11 @@ export interface ReceiptImportResult {
 }
 
 const VALID_CATEGORIES = [
+  'Office Supplies',
   'Travel',
   'Meals',
   'Software',
-  'Hardware',
-  'Office Supplies',
+  'Marketing',
   'Utilities',
   'Other'
 ];
@@ -58,11 +58,11 @@ export function generateReceiptTemplate(): void {
       'Notes': 'Flight to client site'
     },
     {
-      'Vendor *': 'Office Depot',
+      'Vendor *': 'Google Ads',
       'Amount *': '75.25',
-      'Category *': 'Office Supplies',
+      'Category *': 'Marketing',
       'Date * (YYYY-MM-DD)': '2025-10-10',
-      'Notes': 'Printer paper and ink'
+      'Notes': 'Monthly advertising campaign'
     }
   ];
 

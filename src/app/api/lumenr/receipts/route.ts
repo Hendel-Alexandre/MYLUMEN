@@ -125,7 +125,7 @@ export async function POST(request: NextRequest) {
       .insert(receipts)
       .values({
         vendor: vendor.trim(),
-        amount: parsedAmount,
+        amount: parsedAmount.toString(),
         category: category.trim(),
         date: date.trim(),
         fileUrl: fileUrl?.trim() || null,

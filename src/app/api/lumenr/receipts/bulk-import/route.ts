@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
           .insert(receipts)
           .values({
             vendor: receipt.vendor.trim(),
-            amount: receipt.amount,
+            amount: receipt.amount.toString(),
             category: receipt.category.trim(),
             date: receipt.date.trim(),
             notes: receipt.notes?.trim() || null,
