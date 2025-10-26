@@ -57,6 +57,11 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (October 26, 2025)
 
+### Receipt Image Management Enhancement
+-   **Image Download:** Added download button to receipt detail modal with browser download trigger, descriptive filename generation (`receipt-{vendor}-{date}.jpg`), response validation, and user feedback via toast notifications.
+-   **Image Attachment/Update:** Users can now attach images to existing receipts or update existing images via the detail modal. Features include file type validation (image/*), size validation (<10MB), Supabase Storage upload using shared helper, PUT API update with bearer token auth, loading state during upload, early auth guards for better error messages, and automatic UI refresh after update.
+-   **Enhanced UX:** Receipts without images show "No image attached" with upload button, receipts with images display both download and update buttons, failed images show error state with upload option, and modal closes automatically after successful update to avoid page reload disruption.
+
 ### Receipt Enhancement Complete (All 8 Tasks)
 -   **Database Schema:** Enhanced receipts table with `type` field ('expense' | 'client' with default 'expense'), optional `client_id` foreign key to clients table, and renamed `file_url` to `image_url` for consistency.
 -   **Storage Integration:** Created Supabase Storage helper (`src/lib/receipt-storage.ts`) for receipt image uploads with user-scoped organization, image validation, and signed URL generation.
