@@ -10,6 +10,7 @@ import { useRouter } from 'next/navigation'
 import { LumenAssistant } from '@/components/AI/LumenAssistant'
 import { InteractiveBanners } from '@/components/Dashboard/InteractiveBanners'
 import { AnalyticsDashboard } from '@/components/Dashboard/AnalyticsDashboard'
+import { TrialBanner } from '@/components/ui/feature-lock'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -71,6 +72,11 @@ export default function DashboardPage() {
               </Button>
             </div>
           </div>
+        </motion.div>
+
+        {/* Trial Banner */}
+        <motion.div variants={itemVariants}>
+          <TrialBanner />
         </motion.div>
 
         {/* Interactive Analytics Banners - Temporarily disabled due to database setup */}

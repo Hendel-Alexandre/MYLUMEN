@@ -65,6 +65,7 @@ const lumenrNavigation = [
       { title: 'Receipts', url: '/receipts', icon: Receipt },
       { title: 'Payments', url: '/payments', icon: CreditCard },
       { title: 'Billing', url: '/billing', icon: CreditCard },
+      { title: 'Tax & Documents', url: '/documents', icon: FolderOpen },
     ]
   },
   {

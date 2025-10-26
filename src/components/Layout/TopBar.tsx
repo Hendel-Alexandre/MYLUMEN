@@ -16,7 +16,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { SidebarTrigger } from '@/components/ui/sidebar'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { RoleBadge } from '@/components/ui/role-badge'
 import { NotificationsCenter } from '@/components/Dashboard/NotificationsCenter'
 import { useState, useEffect } from 'react'
@@ -28,10 +28,11 @@ export function TopBar() {
   const { user, userProfile, signOut, updateUserStatus } = useAuth()
   const { roles } = useUserRole()
   const [businessName, setBusinessName] = useState('')
+  const [avatarUrl, setAvatarUrl] = useState('')
   
   useEffect(() => {
-    // Load business name from localStorage or pending signup data
-    const loadBusinessProfile = () => {
+    // Load business name and avatar from localStorage
+    const loadUserProfile = () => {
       // Check for pending business name from signup
       const pendingBusinessName = localStorage.getItem('pending_business_name')
       if (pendingBusinessName) {
@@ -45,10 +46,38 @@ export function TopBar() {
       if (savedBusinessName) {
         setBusinessName(savedBusinessName)
       }
+
+      // Load avatar URL
+      const savedAvatarUrl = localStorage.getItem('user_avatar_url')
+      if (savedAvatarUrl) {
+        setAvatarUrl(savedAvatarUrl)
+      }
     }
     
     if (user) {
-      loadBusinessProfile()
+      loadUserProfile()
+    }
+
+    // Listen for avatar updates from Settings
+    const handleAvatarUpdate = (e: StorageEvent) => {
+      if (e.key === 'user_avatar_url' && e.newValue) {
+        setAvatarUrl(e.newValue)
+      }
+    }
+
+    // Listen for custom event for same-window updates
+    const handleCustomAvatarUpdate = (e: CustomEvent) => {
+      if (e.detail?.avatarUrl) {
+        setAvatarUrl(e.detail.avatarUrl)
+      }
+    }
+
+    window.addEventListener('storage', handleAvatarUpdate as any)
+    window.addEventListener('avatarUpdated', handleCustomAvatarUpdate as any)
+
+    return () => {
+      window.removeEventListener('storage', handleAvatarUpdate as any)
+      window.removeEventListener('avatarUpdated', handleCustomAvatarUpdate as any)
     }
   }, [user])
 
@@ -180,6 +209,9 @@ export function TopBar() {
                 <Button variant="ghost" className="gap-2 sm:gap-3 h-8 sm:h-10 px-2 sm:px-3 rounded-lg hover:bg-accent/50">
                   <div className="flex items-center gap-2 sm:gap-3">
                     <Avatar className="h-6 w-6 sm:h-8 sm:w-8">
+                      {avatarUrl ? (
+                        <AvatarImage src={avatarUrl} alt={displayName} />
+                      ) : null}
                       <AvatarFallback className="bg-gradient-primary text-primary-foreground text-xs sm:text-sm font-semibold">
                         {getInitials(displayName)}
                       </AvatarFallback>
@@ -204,6 +236,9 @@ export function TopBar() {
                   <div className="flex flex-col space-y-2">
                     <div className="flex items-center gap-3">
                       <Avatar className="h-10 w-10">
+                        {avatarUrl ? (
+                          <AvatarImage src={avatarUrl} alt={displayName} />
+                        ) : null}
                         <AvatarFallback className="bg-gradient-primary text-primary-foreground font-semibold">
                           {getInitials(displayName)}
                         </AvatarFallback>

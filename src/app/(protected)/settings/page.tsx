@@ -18,11 +18,13 @@ export default function SettingsPage() {
   const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const logoInputRef = useRef<HTMLInputElement>(null)
+  const avatarInputRef = useRef<HTMLInputElement>(null)
   
   const [profileData, setProfileData] = useState({
     first_name: '',
     last_name: '',
-    email: ''
+    email: '',
+    avatar_url: ''
   })
 
   const [businessProfile, setBusinessProfile] = useState({
@@ -36,6 +38,7 @@ export default function SettingsPage() {
 
   const [loadingBusiness, setLoadingBusiness] = useState(false)
   const [uploadingLogo, setUploadingLogo] = useState(false)
+  const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const [theme, setTheme] = useState('system')
   
   const [notifications, setNotifications] = useState({
@@ -47,10 +50,17 @@ export default function SettingsPage() {
 
   const [isLoading, setIsLoading] = useState(false)
 
-  // Load business profile from API on mount
+  // Load profile data and business profile from localStorage/API on mount
   useEffect(() => {
-    const loadBusinessProfile = async () => {
+    const loadProfiles = async () => {
       try {
+        // Load profile avatar from localStorage
+        const avatarUrl = localStorage.getItem('user_avatar_url')
+        if (avatarUrl) {
+          setProfileData(prev => ({ ...prev, avatar_url: avatarUrl }))
+        }
+
+        // Load business profile from API
         const token = localStorage.getItem('bearer_token')
         if (!token) return
 
@@ -75,11 +85,11 @@ export default function SettingsPage() {
           }
         }
       } catch (error) {
-        console.error('Failed to load business profile:', error)
+        console.error('Failed to load profiles:', error)
       }
     }
 
-    loadBusinessProfile()
+    loadProfiles()
   }, [])
 
   const handleBusinessProfileUpdate = async (e: React.FormEvent) => {
@@ -161,6 +171,44 @@ export default function SettingsPage() {
     }
   }
 
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('Profile picture file size must be less than 2MB')
+      return
+    }
+
+    if (!['image/jpeg', 'image/png'].includes(file.type)) {
+      toast.error('Only JPEG and PNG files are supported')
+      return
+    }
+
+    setUploadingAvatar(true)
+    try {
+      const reader = new FileReader()
+      reader.onload = () => {
+        const base64 = reader.result as string
+        setProfileData({ ...profileData, avatar_url: base64 })
+        localStorage.setItem('user_avatar_url', base64)
+        
+        // Dispatch custom event for same-window update
+        window.dispatchEvent(new CustomEvent('avatarUpdated', { detail: { avatarUrl: base64 } }))
+        
+        toast.success('Profile picture uploaded successfully')
+      }
+      reader.onerror = () => {
+        throw new Error('Failed to read file')
+      }
+      reader.readAsDataURL(file)
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to upload profile picture')
+    } finally {
+      setUploadingAvatar(false)
+    }
+  }
+
   const handleSignOut = async () => {
     try {
       localStorage.removeItem('bearer_token')
@@ -179,10 +227,66 @@ export default function SettingsPage() {
       </div>
 
       <div className="grid gap-4 sm:gap-6">
+        {/* Personal Profile Settings */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center text-lg sm:text-xl">
+                <User className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                Personal Profile
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Profile Picture</Label>
+                  <div className="flex items-center gap-4">
+                    <Avatar className="h-16 w-16">
+                      {profileData.avatar_url ? (
+                        <AvatarImage src={profileData.avatar_url} alt="Profile" />
+                      ) : (
+                        <AvatarFallback className="bg-gradient-primary text-primary-foreground text-xl font-semibold">
+                          {profileData.first_name?.[0]}{profileData.last_name?.[0]}
+                        </AvatarFallback>
+                      )}
+                    </Avatar>
+                    <div className="flex-1">
+                      <input
+                        ref={avatarInputRef}
+                        type="file"
+                        accept="image/jpeg,image/png"
+                        className="hidden"
+                        onChange={handleAvatarUpload}
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => avatarInputRef.current?.click()}
+                        disabled={uploadingAvatar}
+                        className="w-full sm:w-auto"
+                      >
+                        <UploadIcon className="h-4 w-4 mr-2" />
+                        {uploadingAvatar ? 'Uploading...' : 'Upload Photo'}
+                      </Button>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        JPEG or PNG, max 2MB
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
         {/* Business Profile Settings */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
         >
           <Card>
             <CardHeader>
