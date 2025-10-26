@@ -112,6 +112,36 @@ The application requires several environment variables:
 
 ## Recent Changes
 
+### October 26, 2025 - OCR Receipt Scanner Implementation (Task 9 Complete)
+**Task 9: OCR Receipt Reader with Tesseract.js**
+- Installed Tesseract.js library for optical character recognition
+- Created `ocr-processor` utility (`src/lib/utils/ocr-processor.ts`):
+  - `processReceiptImage()` function with real-time progress callback
+  - Enhanced amount detection regex supporting:
+    - Keyword-based: "Total: $123.45", "Amount £89.00"
+    - Symbol-only: "$56.78", "€99.99"
+    - Thousand separators: "€1,234.56"
+    - Multiple currencies: $, £, €
+  - Multi-format date parsing (ISO, MDY, short year formats)
+  - Smart day/month swapping when month > 12
+  - Auto-category inference based on keywords (7 categories)
+- Built `OCRReceiptUpload` component (`src/components/Receipts/OCRReceiptUpload.tsx`):
+  - Drag & drop file upload with click-to-browse fallback
+  - File validation (images only, max 10MB)
+  - Image preview before processing
+  - Real-time progress bar showing 0-100% OCR progress
+  - Editable form with all required fields:
+    - Vendor, Date, Amount, Currency (6 options), Category, Notes
+  - User review and correction of extracted data before saving
+  - Complete submission payload with all required fields
+  - Auto-refreshes receipt list on successful save
+  - Comprehensive error handling and toast notifications
+- Integrated into Receipts page:
+  - Added "Scan Receipt" button next to "New Receipt"
+  - Responsive button layout (stacks on mobile, side-by-side on desktop)
+  - State management with proper callbacks
+- Production-ready OCR workflow with robust parsing and validation
+
 ### October 26, 2025 - Dashboard Analytics Implementation (Tasks 6-8 Complete)
 **Task 6: Interactive Analytics Dashboard with Recharts**
 - Created comprehensive `/api/lumenr/analytics` endpoint:
