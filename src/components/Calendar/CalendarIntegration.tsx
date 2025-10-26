@@ -253,6 +253,11 @@ export function CalendarIntegration() {
 
   const handleSyncToGoogle = async () => {
     try {
+      const token = localStorage.getItem('bearer_token');
+      if (!token) {
+        throw new Error('Authentication token not found. Please log in again.');
+      }
+
       const today = new Date();
       const nextMonth = new Date();
       nextMonth.setMonth(nextMonth.getMonth() + 1);
@@ -264,7 +269,10 @@ export function CalendarIntegration() {
 
       const response = await fetch('/api/lumenr/calendar/sync', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
         body: JSON.stringify({
           action: 'sync-all',
           startDate: today.toISOString().split('T')[0],
@@ -295,13 +303,23 @@ export function CalendarIntegration() {
 
   const handleImportFromGoogle = async () => {
     try {
+      const token = localStorage.getItem('bearer_token');
+      if (!token) {
+        throw new Error('Authentication token not found. Please log in again.');
+      }
+
       setIsLoadingGoogleEvents(true);
       const today = new Date();
       const nextMonth = new Date();
       nextMonth.setMonth(nextMonth.getMonth() + 1);
 
       const response = await fetch(
-        `/api/lumenr/calendar/sync?action=import&startDate=${today.toISOString().split('T')[0]}&endDate=${nextMonth.toISOString().split('T')[0]}`
+        `/api/lumenr/calendar/sync?action=import&startDate=${today.toISOString().split('T')[0]}&endDate=${nextMonth.toISOString().split('T')[0]}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        }
       );
 
       if (!response.ok) {
