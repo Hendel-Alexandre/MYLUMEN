@@ -651,26 +651,38 @@ export default function ClientsPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {filteredClients.map((client) => (
           <motion.div
             key={client.id}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            whileHover={{ scale: 1.02 }}
+            whileHover={{ scale: 1.01 }}
             className="h-full"
           >
-            <Card className="h-full hover:shadow-lg transition-all duration-300">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <Card 
+              className="h-full hover:shadow-md transition-all duration-200 cursor-pointer focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2" 
+              role="button"
+              tabIndex={0}
+              onClick={() => handleViewClient(client)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  handleViewClient(client);
+                }
+              }}
+              aria-label={`View details for ${client.name}`}
+            >
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pt-3 px-4">
                 <div className="flex items-center space-x-2 flex-1 min-w-0">
-                  <Users className="h-5 w-5 text-primary flex-shrink-0" />
-                  <CardTitle className="text-lg font-semibold truncate">
+                  <Users className="h-4 w-4 text-primary flex-shrink-0" />
+                  <CardTitle className="text-base font-semibold truncate">
                     {client.name}
                   </CardTitle>
                 </div>
                 <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="flex-shrink-0">
+                  <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                    <Button variant="ghost" size="sm" className="flex-shrink-0 h-7 w-7 p-0">
                       <MoreHorizontal className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
@@ -709,33 +721,28 @@ export default function ClientsPage() {
                   </DropdownMenuContent>
                 </DropdownMenu>
               </CardHeader>
-              <CardContent className="space-y-3">
+              <CardContent className="space-y-1.5 px-4 pb-3">
                 {client.company && (
-                  <div className="flex items-center text-sm">
-                    <Building2 className="h-4 w-4 mr-2 text-muted-foreground" />
+                  <div className="flex items-center text-xs text-muted-foreground">
+                    <Building2 className="h-3.5 w-3.5 mr-1.5 flex-shrink-0" />
                     <span className="truncate">{client.company}</span>
                   </div>
                 )}
 
-                <div className="flex items-center text-sm">
-                  <Mail className="h-4 w-4 mr-2 text-muted-foreground" />
+                <div className="flex items-center text-xs text-muted-foreground">
+                  <Mail className="h-3.5 w-3.5 mr-1.5 flex-shrink-0" />
                   <span className="truncate">{client.email}</span>
                 </div>
 
                 {client.phone && (
-                  <div className="flex items-center text-sm">
-                    <Phone className="h-4 w-4 mr-2 text-muted-foreground" />
+                  <div className="flex items-center text-xs text-muted-foreground">
+                    <Phone className="h-3.5 w-3.5 mr-1.5 flex-shrink-0" />
                     <span className="truncate">{client.phone}</span>
                   </div>
                 )}
 
-                <div className="flex justify-between items-center pt-4">
-                  <div className="text-xs text-muted-foreground">
-                    Added {new Date(client.createdAt).toLocaleDateString()}
-                  </div>
-                  <Button variant="outline" size="sm" onClick={() => handleViewClient(client)}>
-                    View Details
-                  </Button>
+                <div className="text-xs text-muted-foreground pt-1">
+                  Added {new Date(client.createdAt).toLocaleDateString()}
                 </div>
               </CardContent>
             </Card>
