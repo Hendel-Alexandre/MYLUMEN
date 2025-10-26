@@ -7,6 +7,7 @@ import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { uploadReceiptImage } from '@/lib/receipt-storage';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface ReceiptDetailModalProps {
   receipt: {
@@ -30,6 +31,7 @@ interface ReceiptDetailModalProps {
 }
 
 export default function ReceiptDetailModal({ receipt, clientName, isOpen, onClose, onUpdate }: ReceiptDetailModalProps) {
+  const { user } = useAuth();
   const [imageError, setImageError] = useState(false);
   const [imageLoading, setImageLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
@@ -100,17 +102,18 @@ export default function ReceiptDetailModal({ receipt, clientName, isOpen, onClos
 
     try {
       const token = localStorage.getItem('bearer_token');
-      const userId = localStorage.getItem('user_id');
       
       if (!token) {
         toast.error('Authentication required. Please log in again.');
         return;
       }
       
-      if (!userId) {
+      if (!user?.id) {
         toast.error('User not authenticated');
         return;
       }
+      
+      const userId = user.id;
 
       toast.loading('Uploading receipt image...');
       const uploadResult = await uploadReceiptImage({
