@@ -104,9 +104,9 @@ export default function SignupPage() {
         })
       } else {
         toast.success('Success', {
-          description: 'Account created successfully! Please check your email to verify your account.'
+          description: 'Account created successfully! Let\'s set up your business profile.'
         })
-        router.push('/login?registered=true')
+        router.push('/onboarding')
       }
     } catch (error) {
       console.error('[Signup] Exception:', error)
