@@ -23,7 +23,14 @@ export async function uploadReceiptImage({
   fileName
 }: UploadReceiptImageOptions): Promise<UploadReceiptImageResult> {
   try {
+    console.log('[Receipt Storage] Starting upload...', {
+      fileType: file.type,
+      fileSize: file.size,
+      fileName
+    });
+
     if (!supabase) {
+      console.error('[Receipt Storage] Supabase client not available');
       return {
         success: false,
         error: 'Supabase client not available'
@@ -32,6 +39,7 @@ export async function uploadReceiptImage({
 
     // Validate file type
     if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+      console.error('[Receipt Storage] Invalid file type:', file.type);
       return {
         success: false,
         error: `Invalid file type. Allowed types: ${ALLOWED_IMAGE_TYPES.join(', ')}`
@@ -40,6 +48,7 @@ export async function uploadReceiptImage({
 
     // Validate file size
     if (file.size > MAX_FILE_SIZE) {
+      console.error('[Receipt Storage] File too large:', file.size);
       return {
         success: false,
         error: `File too large. Maximum size: ${MAX_FILE_SIZE / 1024 / 1024}MB`
@@ -54,6 +63,7 @@ export async function uploadReceiptImage({
     
     // Organize by user ID
     const filePath = `${userId}/${uniqueFileName}`;
+    console.log('[Receipt Storage] Uploading to path:', filePath);
 
     // Upload to Supabase Storage (file is already a Blob/File, no need to convert)
     const { data, error } = await supabase.storage
@@ -65,17 +75,21 @@ export async function uploadReceiptImage({
       });
 
     if (error) {
-      console.error('Receipt image upload error:', error);
+      console.error('[Receipt Storage] Upload error:', error);
       return {
         success: false,
         error: error.message
       };
     }
 
+    console.log('[Receipt Storage] Upload successful, getting public URL...');
+
     // Get public URL
     const { data: { publicUrl } } = supabase.storage
       .from(RECEIPT_BUCKET)
       .getPublicUrl(data.path);
+
+    console.log('[Receipt Storage] Public URL obtained:', publicUrl);
 
     return {
       success: true,
@@ -84,7 +98,7 @@ export async function uploadReceiptImage({
     };
 
   } catch (error) {
-    console.error('Receipt image upload exception:', error);
+    console.error('[Receipt Storage] Upload exception:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to upload receipt image'
