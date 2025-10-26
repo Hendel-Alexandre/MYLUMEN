@@ -112,6 +112,46 @@ The application requires several environment variables:
 
 ## Recent Changes
 
+### October 26, 2025 - Client Management Enhancements (Tasks 1-4 Complete)
+**Task 1: Authentication Improvements**
+- Removed GitHub login option from login/signup pages
+- Made Google login button full-width for better UX
+- Added password confirmation field to signup form with Zod validation
+- Enhanced form validation and error handling
+
+**Task 2: Location Fields for Clients**
+- Added city, province, and country fields to clients database schema
+- Updated Client interface and all client forms
+- Implemented 3-column grid layout (City, Province/State, Country) in UI
+- Updated API POST/PUT handlers to persist location data
+- All location data properly flows from UI → API → Database
+
+**Task 3: Compact Client Cards**
+- Made client cards significantly more compact for better list viewing
+- Reduced spacing, padding, and text sizes throughout
+- Changed grid to 4 columns on XL screens (was 3)
+- Made entire card clickable with full keyboard accessibility
+- Added role="button", tabIndex, aria-label, and keyboard handlers (Enter/Space)
+- Visible focus indicators (focus-within:ring) for accessibility
+- Removed redundant "View Details" button
+
+**Task 4: Auto-Tax Calculation System**
+- Added `tax_rate` (NUMERIC 5,2) and `auto_calculate_tax` (BOOLEAN) columns to database
+- Created comprehensive tax-calculator utility with rates for 40+ jurisdictions:
+  - All Canadian provinces (GST, PST, HST)
+  - US states (Sales Tax)
+  - European countries (VAT)
+  - Australia, New Zealand
+- Implemented auto-calculation logic that works for:
+  - Province-based taxes (Canada, US)
+  - Country-level taxes (UK, EU, Australia, NZ)
+- Added UI toggle switch for auto-tax calculation
+- Tax rate input disabled during auto-calculation
+- Descriptive labels show tax breakdown (e.g., "HST 13%", "GST 5% + PST 7%")
+- Properly clears stale tax rates when switching to unsupported locations
+- Available in both create and edit client forms
+- Full data persistence through API and database
+
 ### October 25, 2025 - Database Configuration Fix
 **Fixed Supabase Connection Issues:**
 - Updated `src/db/index.ts` to use Transaction Pooler with `prepare: false` option
