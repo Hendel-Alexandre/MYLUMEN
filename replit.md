@@ -56,6 +56,7 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (October 26, 2025)
 
--   **Stripe Payment Integration:** Added Stripe checkout sessions for invoice payments, webhook handling for payment confirmations, and billing dashboard showing revenue, pending payments, and payment history.
--   **Products Page:** Complete product catalog management with CRUD operations, category filtering, active/inactive status toggle, image URL support, and price management.
+-   **Stripe Payment Integration:** Added Stripe checkout sessions for invoice payments, idempotent webhook handling (using transactionRef to prevent duplicate payments), and billing dashboard showing revenue, pending payments, and payment history with graceful error handling.
+-   **Products Page:** Complete product catalog management with CRUD operations, category filtering, active/inactive status toggle, image URL support, inventory tracking (stock_quantity and track_inventory fields), and visual stock level indicators with color-coded badges.
+-   **Billing Dashboard Improvements:** Enhanced error handling with partial data loading, inline error banners with retry functionality, and graceful degradation when individual API calls fail.
 -   **Navigation Enhancement:** Added Products, Services, and Billing links to the Financial section of the sidebar navigation.
