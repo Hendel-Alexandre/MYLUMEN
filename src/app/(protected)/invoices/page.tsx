@@ -76,7 +76,8 @@ export default function InvoicesPage() {
         throw new Error('Failed to fetch invoices')
       }
       
-      const data = await response.json()
+      const result = await response.json()
+      const data = result.success ? result.data : result
       setInvoices(Array.isArray(data) ? data : [])
     } catch (error: any) {
       toast.error(error.message || 'Failed to fetch invoices')
@@ -94,7 +95,8 @@ export default function InvoicesPage() {
       })
       
       if (response.ok) {
-        const data = await response.json()
+        const result = await response.json()
+        const data = result.success ? result.data : result
         setClients(Array.isArray(data) ? data : [])
       }
     } catch (error: any) {

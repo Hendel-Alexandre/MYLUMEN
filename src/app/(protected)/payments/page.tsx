@@ -70,7 +70,8 @@ export default function PaymentsPage() {
         throw new Error('Failed to fetch payments')
       }
       
-      const data = await response.json()
+      const result = await response.json()
+      const data = result.success ? result.data : result
       setPayments(Array.isArray(data) ? data : [])
     } catch (error: any) {
       toast.error(error.message || 'Failed to fetch payments')
@@ -88,7 +89,8 @@ export default function PaymentsPage() {
       })
       
       if (response.ok) {
-        const data = await response.json()
+        const result = await response.json()
+        const data = result.success ? result.data : result
         setInvoices(Array.isArray(data) ? data : [])
       }
     } catch (error: any) {

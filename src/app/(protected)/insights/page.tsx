@@ -61,12 +61,17 @@ export default function InsightsPage() {
         throw new Error('Failed to fetch insights data')
       }
 
-      const [invoicesData, receiptsData, paymentsData, clientsData] = await Promise.all([
+      const [invoicesResult, receiptsResult, paymentsResult, clientsResult] = await Promise.all([
         invoicesRes.json(),
         receiptsRes.json(),
         paymentsRes.json(),
         clientsRes.json()
       ])
+
+      const invoicesData = invoicesResult.success ? invoicesResult.data : invoicesResult
+      const receiptsData = receiptsResult.success ? receiptsResult.data : receiptsResult
+      const paymentsData = paymentsResult.success ? paymentsResult.data : paymentsResult
+      const clientsData = clientsResult.success ? clientsResult.data : clientsResult
 
       setInvoices(Array.isArray(invoicesData) ? invoicesData : [])
       setReceipts(Array.isArray(receiptsData) ? receiptsData : [])

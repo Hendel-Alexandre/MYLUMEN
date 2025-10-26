@@ -62,7 +62,8 @@ export default function ReceiptsPage() {
         throw new Error('Failed to fetch receipts')
       }
       
-      const data = await response.json()
+      const result = await response.json()
+      const data = result.success ? result.data : result
       setReceipts(Array.isArray(data) ? data : [])
     } catch (error: any) {
       toast.error(error.message || 'Failed to fetch receipts')

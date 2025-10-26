@@ -76,7 +76,8 @@ export default function ContractsPage() {
         throw new Error('Failed to fetch contracts')
       }
       
-      const data = await response.json()
+      const result = await response.json()
+      const data = result.success ? result.data : result
       setContracts(Array.isArray(data) ? data : [])
     } catch (error: any) {
       toast.error(error.message || 'Failed to fetch contracts')
@@ -94,7 +95,8 @@ export default function ContractsPage() {
       })
       
       if (response.ok) {
-        const data = await response.json()
+        const result = await response.json()
+        const data = result.success ? result.data : result
         setClients(Array.isArray(data) ? data : [])
       }
     } catch (error: any) {

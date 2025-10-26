@@ -74,7 +74,8 @@ export default function QuotesPage() {
         throw new Error('Failed to fetch quotes')
       }
       
-      const data = await response.json()
+      const result = await response.json()
+      const data = result.success ? result.data : result
       setQuotes(Array.isArray(data) ? data : [])
     } catch (error: any) {
       toast.error(error.message || 'Failed to fetch quotes')
@@ -92,7 +93,8 @@ export default function QuotesPage() {
       })
       
       if (response.ok) {
-        const data = await response.json()
+        const result = await response.json()
+        const data = result.success ? result.data : result
         setClients(Array.isArray(data) ? data : [])
       }
     } catch (error: any) {
