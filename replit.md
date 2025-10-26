@@ -57,6 +57,55 @@ Preferred communication style: Simple, everyday language.
 
 ## Recent Changes (October 26, 2025)
 
+### Database Setup & Migration (Critical Fix)
+-   **Database Tables Created:** All 11 missing database tables created successfully: `clients`, `products`, `services`, `quotes`, `invoices`, `contracts`, `receipts`, `payments`, `business_profiles`, `bookings`, and `user_mode_settings`.
+-   **Schema Synchronization:** Resolved critical "relation does not exist" errors by creating all tables from the Drizzle schema definition.
+-   **Subscription Management:** Added `user_mode_settings` table for tracking trial periods, subscription status, and onboarding completion.
+
+### Authentication Enhancement
+-   **Google OAuth Only:** Removed GitHub, Azure, and Facebook OAuth providers to simplify authentication flow and reduce configuration complexity.
+-   **Streamlined Sign-In:** Both login and signup pages now exclusively use Google OAuth with clear, prominent sign-in buttons.
+-   **Security:** Maintained bearer token-based API authentication and user ownership checks.
+
+### Onboarding Experience
+-   **3-Step Onboarding Wizard:** Created comprehensive onboarding flow collecting:
+    1. **Location Data** (Country/Province/City) for tax calculation settings
+    2. **Business Information** (Name, Address, Tax ID) for professional invoicing
+    3. **Preferences** (Currency, Tax Region, Payment Instructions) for customized documents
+-   **Data Persistence:** Onboarding data stored in `business_profiles` and `user_mode_settings` tables.
+-   **Skip Protection:** Prevents skipping steps to ensure complete profile setup.
+-   **Mobile Responsive:** Optimized for all screen sizes with clear progress indicators.
+
+### PDF Document Generation
+-   **Quote PDFs:** Professional PDF templates for quotes using @react-pdf/renderer with:
+    - Clean header with business branding
+    - Detailed line items table with products/services
+    - Automatic subtotal, tax, and total calculations
+    - Custom notes section
+    - Professional footer
+-   **Invoice PDFs:** Matching professional PDF templates for invoices with:
+    - Payment status indicators
+    - Due date highlighting
+    - Deposit information when applicable
+    - Payment instructions section
+    - Consistent branding with quote templates
+-   **Architecture Review:** Both templates reviewed and approved by architect for code quality and maintainability.
+
+### Trial & Subscription Management
+-   **Trial Expiry Restrictions:** Implemented secure access control on invoices page:
+    - Disabled "New Invoice" button for expired trials with lock icon
+    - Loading state protection prevents bypass during subscription verification
+    - Clear upgrade prompts with direct link to billing page
+    - Trial days counter for active trials (e.g., "Trial: 5 days remaining")
+    - Toast notifications for expired trial attempts
+-   **Security Hardening:** Fixed initial implementation vulnerabilities:
+    - Proper `needsUpgrade` checking prevents bypass when subscription_status is stale
+    - `canCreateInvoice` gate checks loading state, expiry, and days remaining
+    - Tooltips and messaging differentiate between loading and expired states
+-   **Architect Approved:** Security review confirmed no bypass vulnerabilities remain.
+
+## Recent Changes (October 26, 2025 - Previous)
+
 ### Invoicing & Quotes Enhancement (Complete)
 -   **LineItemsEditor Component:** Created reusable component for adding products/services as line items to invoices and quotes with auto-calculation of totals. Fixed critical bug ensuring totals recalculate when products/services are selected.
 -   **Invoice Line Items:** Full invoicing system with product/service line items, automatic subtotal/tax/total calculation based on client tax settings, status tracking (unpaid/partially_paid/paid/overdue/cancelled), and due date management.
