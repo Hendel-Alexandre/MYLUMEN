@@ -311,7 +311,10 @@ export default function InsightsPage() {
             <div>
               <p className="text-sm text-muted-foreground">Total Revenue (All Time)</p>
               <p className="text-2xl font-bold">
-                ${payments.reduce((sum, p) => sum + p.amount, 0).toFixed(2)}
+                ${payments.reduce((sum, p) => {
+                  const amount = typeof p.amount === 'number' && !isNaN(p.amount) ? p.amount : 0
+                  return sum + amount
+                }, 0).toFixed(2)}
               </p>
             </div>
             <div>
@@ -321,7 +324,10 @@ export default function InsightsPage() {
             <div>
               <p className="text-sm text-muted-foreground">Average Invoice Value</p>
               <p className="text-2xl font-bold">
-                ${invoices.length > 0 ? (invoices.reduce((sum, i) => sum + i.total, 0) / invoices.length).toFixed(2) : '0.00'}
+                ${invoices.length > 0 ? (invoices.reduce((sum, i) => {
+                  const total = typeof i.total === 'number' && !isNaN(i.total) ? i.total : 0
+                  return sum + total
+                }, 0) / invoices.length).toFixed(2) : '0.00'}
               </p>
             </div>
             <div>

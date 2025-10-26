@@ -471,7 +471,7 @@ export default function QuotesPage() {
                   <Badge className={`${getStatusColor(quote.status)} text-white`}>
                     {quote.status}
                   </Badge>
-                  <span className="text-lg font-bold">${quote.total.toFixed(2)}</span>
+                  <span className="text-lg font-bold">${Number(quote.total || 0).toFixed(2)}</span>
                 </div>
 
                 <div className="text-sm">

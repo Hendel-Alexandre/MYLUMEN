@@ -400,7 +400,7 @@ export default function ReceiptsPage() {
                   </Badge>
                   <span className="text-lg font-bold flex items-center gap-1">
                     <DollarSign className="h-4 w-4" />
-                    {receipt.amount.toFixed(2)}
+                    {Number(receipt.amount || 0).toFixed(2)}
                   </span>
                 </div>
 

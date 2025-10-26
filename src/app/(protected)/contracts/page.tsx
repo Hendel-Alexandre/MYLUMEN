@@ -473,7 +473,7 @@ export default function ContractsPage() {
                 {contract.value !== null && (
                   <div className="text-sm">
                     <span className="text-muted-foreground">Value: </span>
-                    <span className="font-bold">${contract.value.toFixed(2)}</span>
+                    <span className="font-bold">${Number(contract.value || 0).toFixed(2)}</span>
                   </div>
                 )}
 

@@ -204,7 +204,7 @@ export default function BillingPage() {
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">${stats.totalRevenue.toFixed(2)}</div>
+              <div className="text-2xl font-bold">${Number(stats.totalRevenue || 0).toFixed(2)}</div>
               <p className="text-xs text-muted-foreground">All-time earnings</p>
             </CardContent>
           </Card>
@@ -221,7 +221,7 @@ export default function BillingPage() {
               <Clock className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">${stats.pendingPayments.toFixed(2)}</div>
+              <div className="text-2xl font-bold">${Number(stats.pendingPayments || 0).toFixed(2)}</div>
               <p className="text-xs text-muted-foreground">Awaiting payment</p>
             </CardContent>
           </Card>
@@ -301,7 +301,7 @@ export default function BillingPage() {
                         </p>
                       </div>
                       <div className="text-right">
-                        <p className="font-bold">${parseFloat(invoice.total).toFixed(2)}</p>
+                        <p className="font-bold">${Number(invoice.total || 0).toFixed(2)}</p>
                         {invoice.status === 'unpaid' && (
                           <Button 
                             size="sm" 
@@ -345,7 +345,7 @@ export default function BillingPage() {
                     </div>
                     <div className="text-right">
                       <p className="font-bold text-green-600 dark:text-green-400">
-                        +${parseFloat(payment.amount).toFixed(2)}
+                        +${Number(payment.amount || 0).toFixed(2)}
                       </p>
                       <p className="text-xs text-muted-foreground">{payment.currency}</p>
                     </div>

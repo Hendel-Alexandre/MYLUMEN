@@ -511,7 +511,7 @@ export default function InvoicesPage() {
                   <Badge className={`${getStatusColor(invoice.status)} text-white`}>
                     {invoice.status}
                   </Badge>
-                  <span className="text-lg font-bold">${invoice.total.toFixed(2)}</span>
+                  <span className="text-lg font-bold">${Number(invoice.total || 0).toFixed(2)}</span>
                 </div>
 
                 <div className="text-sm">

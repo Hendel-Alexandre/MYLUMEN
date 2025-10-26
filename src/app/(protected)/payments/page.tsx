@@ -217,7 +217,7 @@ export default function PaymentsPage() {
                   <SelectContent>
                     {invoices.filter(inv => inv.status !== 'paid' && inv.status !== 'cancelled').map(invoice => (
                       <SelectItem key={invoice.id} value={invoice.id.toString()}>
-                        Invoice #{invoice.id} - ${invoice.total.toFixed(2)} ({invoice.status})
+                        Invoice #{invoice.id} - ${Number(invoice.total || 0).toFixed(2)} ({invoice.status})
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -371,7 +371,7 @@ export default function PaymentsPage() {
                   </Badge>
                   <span className="text-lg font-bold flex items-center gap-1">
                     <DollarSign className="h-4 w-4" />
-                    {payment.amount.toFixed(2)}
+                    {Number(payment.amount || 0).toFixed(2)}
                   </span>
                 </div>
 

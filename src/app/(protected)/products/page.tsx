@@ -457,7 +457,7 @@ export default function ProductsPage() {
                 <div className="flex items-center justify-between mt-2">
                   <div className="flex items-center text-lg font-bold text-primary">
                     <DollarSign className="h-4 w-4" />
-                    {parseFloat(product.price).toFixed(2)}
+                    {Number(product.price || 0).toFixed(2)}
                   </div>
                   <div className="text-xs text-muted-foreground">
                     {new Date(product.createdAt).toLocaleDateString()}

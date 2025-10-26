@@ -354,7 +354,7 @@ export default function ServicesPage() {
                   <div className="flex justify-between items-center">
                     <div>
                       <p className="text-2xl font-bold">
-                        ${parseFloat(service.unitPrice).toFixed(2)}
+                        ${Number(service.unitPrice || 0).toFixed(2)}
                       </p>
                       <p className="text-xs text-muted-foreground">{service.currency}</p>
                     </div>
