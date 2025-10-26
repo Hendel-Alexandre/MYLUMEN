@@ -34,13 +34,13 @@ export async function signIn(email: string, password: string) {
 }
 
 /**
- * Sign in with OAuth provider
+ * Sign in with Google OAuth
  */
-export async function signInWithOAuth(provider: 'google' | 'github' | 'azure' | 'facebook') {
+export async function signInWithGoogle() {
   const supabase = createClient()
   
   const { data, error } = await supabase.auth.signInWithOAuth({
-    provider,
+    provider: 'google',
     options: {
       redirectTo: `${window.location.origin}/auth/callback`,
     },
