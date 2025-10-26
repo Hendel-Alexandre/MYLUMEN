@@ -109,12 +109,19 @@ export function AppSidebar() {
       <SidebarContent>
         {/* Logo Section */}
         <div className="p-6 border-b border-border/50">
-          <div className="text-center">
-            <span className={`font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent transition-all duration-300 ${
-              isCollapsed ? 'text-xl' : 'text-3xl'
-            }`}>
-              LumenR
-            </span>
+          <div className="flex items-center justify-center gap-3">
+            <img 
+              src="/lumenr-logo.png" 
+              alt="LumenR" 
+              className={`transition-all duration-300 ${
+                isCollapsed ? 'w-8 h-8' : 'w-12 h-12'
+              }`}
+            />
+            {!isCollapsed && (
+              <span className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                LumenR
+              </span>
+            )}
           </div>
         </div>
         

@@ -31,7 +31,8 @@ export default function IndexPage() {
       {/* Navigation */}
       <nav className="border-b border-border/40 bg-card/50 backdrop-blur-xl sticky top-0 z-50">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center">
+          <div className="flex items-center gap-2">
+            <img src="/lumenr-logo.png" alt="LumenR" className="w-8 h-8" />
             <span className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
               LumenR
             </span>

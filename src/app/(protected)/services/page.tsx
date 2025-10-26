@@ -106,9 +106,11 @@ export default function ServicesPage() {
       }
 
       const data = await response.json();
-      setServices(data);
+      const servicesList = Array.isArray(data) ? data : data.data || [];
+      setServices(servicesList);
     } catch (error: any) {
       toast.error(error.message || 'Failed to fetch services');
+      setServices([]);
     } finally {
       setLoading(false);
     }
