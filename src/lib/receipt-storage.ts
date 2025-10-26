@@ -1,4 +1,4 @@
-import { createServiceClient } from '@/lib/supabase/service';
+import { supabase } from '@/integrations/supabase/client';
 
 const RECEIPT_BUCKET = 'receipts';
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/heic'];
@@ -23,6 +23,13 @@ export async function uploadReceiptImage({
   fileName
 }: UploadReceiptImageOptions): Promise<UploadReceiptImageResult> {
   try {
+    if (!supabase) {
+      return {
+        success: false,
+        error: 'Supabase client not available'
+      };
+    }
+
     // Validate file type
     if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
       return {
@@ -48,16 +55,10 @@ export async function uploadReceiptImage({
     // Organize by user ID
     const filePath = `${userId}/${uniqueFileName}`;
 
-    // Convert file to buffer
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-
-    const supabase = createServiceClient();
-
-    // Upload to Supabase Storage
+    // Upload to Supabase Storage (file is already a Blob/File, no need to convert)
     const { data, error } = await supabase.storage
       .from(RECEIPT_BUCKET)
-      .upload(filePath, buffer, {
+      .upload(filePath, file, {
         contentType: file.type,
         cacheControl: '3600',
         upsert: false
@@ -93,8 +94,11 @@ export async function uploadReceiptImage({
 
 export async function deleteReceiptImage(path: string): Promise<boolean> {
   try {
-    const supabase = createServiceClient();
-    
+    if (!supabase) {
+      console.error('Supabase client not available');
+      return false;
+    }
+
     const { error } = await supabase.storage
       .from(RECEIPT_BUCKET)
       .remove([path]);
@@ -116,8 +120,11 @@ export async function getReceiptImageSignedUrl(
   expiresIn: number = 3600
 ): Promise<string | null> {
   try {
-    const supabase = createServiceClient();
-    
+    if (!supabase) {
+      console.error('Supabase client not available');
+      return null;
+    }
+
     const { data, error } = await supabase.storage
       .from(RECEIPT_BUCKET)
       .createSignedUrl(path, expiresIn);
