@@ -102,7 +102,9 @@ export const receipts = pgTable('receipts', {
   amount: numeric('amount', { precision: 10, scale: 2 }).notNull(),
   category: text('category').notNull(),
   date: text('date').notNull(),
-  fileUrl: text('file_url'),
+  type: text('type').notNull().default('expense'), // 'expense' or 'client'
+  clientId: integer('client_id').references(() => clients.id, { onDelete: 'cascade' }), // For client receipts
+  imageUrl: text('image_url'), // Renamed from fileUrl for clarity
   notes: text('notes'),
   userId: text('user_id').notNull(),
   createdAt: timestamp('created_at', { mode: 'string' }).notNull(),

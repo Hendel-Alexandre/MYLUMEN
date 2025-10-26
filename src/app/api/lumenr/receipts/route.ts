@@ -52,10 +52,23 @@ export async function GET(request: NextRequest) {
     const limit = Math.min(parseInt(searchParams.get('limit') ?? '100'), 100);
     const offset = parseInt(searchParams.get('offset') ?? '0');
     const category = searchParams.get('category');
+    const type = searchParams.get('type'); // 'expense' or 'client'
+    const clientId = searchParams.get('clientId');
     const startDate = searchParams.get('startDate');
     const endDate = searchParams.get('endDate');
 
     let conditions = [eq(receipts.userId, userId)];
+
+    if (type && (type === 'expense' || type === 'client')) {
+      conditions.push(eq(receipts.type, type));
+    }
+
+    if (clientId) {
+      const clientIdInt = parseInt(clientId);
+      if (!isNaN(clientIdInt)) {
+        conditions.push(eq(receipts.clientId, clientIdInt));
+      }
+    }
 
     if (category) {
       conditions.push(eq(receipts.category, category));
@@ -104,7 +117,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { vendor, amount, category, date, fileUrl, notes } = body;
+    const { vendor, amount, category, date, type, clientId, imageUrl, notes } = body;
 
     if (!vendor || !vendor.trim()) {
       return jsonError('Vendor is required', 400);
@@ -131,6 +144,24 @@ export async function POST(request: NextRequest) {
       return jsonError('Date must be in YYYY-MM-DD format', 400);
     }
 
+    // Validate type if provided
+    const receiptType = type?.trim() || 'expense';
+    if (receiptType !== 'expense' && receiptType !== 'client') {
+      return jsonError('Type must be "expense" or "client"', 400);
+    }
+
+    // Validate clientId if type is client
+    let parsedClientId = null;
+    if (receiptType === 'client') {
+      if (!clientId) {
+        return jsonError('Client ID is required for client receipts', 400);
+      }
+      parsedClientId = parseInt(clientId);
+      if (isNaN(parsedClientId)) {
+        return jsonError('Client ID must be a valid number', 400);
+      }
+    }
+
     const now = new Date().toISOString();
 
     const newReceipt = await db
@@ -140,7 +171,9 @@ export async function POST(request: NextRequest) {
         amount: parsedAmount.toString(),
         category: category.trim(),
         date: date.trim(),
-        fileUrl: fileUrl?.trim() || null,
+        type: receiptType,
+        clientId: parsedClientId,
+        imageUrl: imageUrl?.trim() || null,
         notes: notes?.trim() || null,
         userId: userId,
         createdAt: now,
@@ -148,7 +181,13 @@ export async function POST(request: NextRequest) {
       })
       .returning();
 
-    return jsonOk(newReceipt[0], 201);
+    // Convert numeric strings to numbers for frontend
+    const formattedReceipt = {
+      ...newReceipt[0],
+      amount: parseFloat(newReceipt[0].amount as any) || 0
+    };
+
+    return jsonOk(formattedReceipt, 201);
   } catch (error) {
     console.error('POST error:', error);
     return jsonError('Internal server error: ' + (error as Error).message, 500);
@@ -182,7 +221,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { vendor, amount, category, date, fileUrl, notes } = body;
+    const { vendor, amount, category, date, type, clientId, imageUrl, notes } = body;
 
     const updates: any = {
       updatedAt: new Date().toISOString(),
@@ -200,7 +239,7 @@ export async function PUT(request: NextRequest) {
       if (isNaN(parsedAmount) || parsedAmount <= 0) {
         return jsonError('Amount must be a positive number', 400);
       }
-      updates.amount = parsedAmount;
+      updates.amount = parsedAmount.toString();
     }
 
     if (category !== undefined) {
@@ -220,8 +259,33 @@ export async function PUT(request: NextRequest) {
       updates.date = date.trim();
     }
 
-    if (fileUrl !== undefined) {
-      updates.fileUrl = fileUrl?.trim() || null;
+    if (type !== undefined) {
+      const receiptType = type.trim();
+      if (receiptType !== 'expense' && receiptType !== 'client') {
+        return jsonError('Type must be "expense" or "client"', 400);
+      }
+      updates.type = receiptType;
+
+      // If changing to client type, clientId is required
+      if (receiptType === 'client' && clientId === undefined && !existing[0].clientId) {
+        return jsonError('Client ID is required for client receipts', 400);
+      }
+    }
+
+    if (clientId !== undefined) {
+      if (clientId === null) {
+        updates.clientId = null;
+      } else {
+        const parsedClientId = parseInt(clientId);
+        if (isNaN(parsedClientId)) {
+          return jsonError('Client ID must be a valid number', 400);
+        }
+        updates.clientId = parsedClientId;
+      }
+    }
+
+    if (imageUrl !== undefined) {
+      updates.imageUrl = imageUrl?.trim() || null;
     }
 
     if (notes !== undefined) {
@@ -238,7 +302,13 @@ export async function PUT(request: NextRequest) {
       return jsonError('Receipt not found', 404);
     }
 
-    return jsonOk(updated[0]);
+    // Convert numeric strings to numbers for frontend
+    const formattedReceipt = {
+      ...updated[0],
+      amount: parseFloat(updated[0].amount as any) || 0
+    };
+
+    return jsonOk(formattedReceipt);
   } catch (error) {
     console.error('PUT error:', error);
     return jsonError('Internal server error: ' + (error as Error).message, 500);
