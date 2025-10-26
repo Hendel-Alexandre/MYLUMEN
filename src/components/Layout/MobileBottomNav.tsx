@@ -4,7 +4,7 @@ import {
   Home, CheckSquare, Calendar, BarChart3, Settings,
   Plus, X
 } from 'lucide-react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useRouter, usePathname } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 
 interface NavItem {
@@ -29,14 +29,14 @@ const QUICK_ACTIONS = [
 ]
 
 export function MobileBottomNav() {
-  const navigate = useNavigate()
-  const location = useLocation()
+  const router = useRouter()
+  const pathname = usePathname()
   const [showQuickActions, setShowQuickActions] = useState(false)
   const y = useMotionValue(0)
   const opacity = useTransform(y, [-100, 0], [0, 1])
 
   const handleNavigation = (path: string) => {
-    navigate(path)
+    router.push(path)
   }
 
   const handleQuickAction = (actionId: string) => {
@@ -52,13 +52,13 @@ export function MobileBottomNav() {
     }
     // Swipe left/right for navigation
     else if (Math.abs(info.offset.x) > 100) {
-      const currentIndex = NAV_ITEMS.findIndex(item => item.path === location.pathname)
+      const currentIndex = NAV_ITEMS.findIndex(item => item.path === pathname)
       if (info.offset.x > 0 && currentIndex > 0) {
         // Swipe right - go to previous
-        navigate(NAV_ITEMS[currentIndex - 1].path)
+        router.push(NAV_ITEMS[currentIndex - 1].path)
       } else if (info.offset.x < 0 && currentIndex < NAV_ITEMS.length - 1) {
         // Swipe left - go to next
-        navigate(NAV_ITEMS[currentIndex + 1].path)
+        router.push(NAV_ITEMS[currentIndex + 1].path)
       }
     }
   }
@@ -136,8 +136,8 @@ export function MobileBottomNav() {
           <div className="flex items-center justify-around px-2 py-2 relative">
             {NAV_ITEMS.map((item, index) => {
               const Icon = item.icon
-              const isActive = location.pathname === item.path || 
-                             (location.pathname.startsWith(item.path) && item.path !== '/')
+              const isActive = pathname === item.path || 
+                             (pathname.startsWith(item.path) && item.path !== '/')
               
               // Add space for FAB in the middle
               if (index === 2) {
