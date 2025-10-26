@@ -15,31 +15,44 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import LineItemsEditor from '@/components/LineItems/LineItemsEditor'
 
 interface Client {
   id: number
   name: string
   email: string
   company: string | null
+  taxRate: string | null
+  autoCalculateTax: boolean
+}
+
+interface LineItem {
+  id: string
+  type: 'product' | 'service'
+  itemId: number | null
+  name: string
+  description: string
+  quantity: number
+  price: number
+  total: number
 }
 
 interface Invoice {
   id: number
   clientId: number
   userId: string
-  invoiceNumber: string
-  issueDate: string
-  dueDate: string
-  status: string
+  items: LineItem[]
   subtotal: number
   tax: number
   total: number
+  status: string
+  dueDate: string | null
   notes: string | null
   createdAt: string
   updatedAt: string
 }
 
-const STATUS_OPTIONS = ['draft', 'sent', 'paid', 'overdue', 'cancelled']
+const STATUS_OPTIONS = ['unpaid', 'partially_paid', 'paid', 'cancelled', 'overdue']
 
 export default function InvoicesPage() {
   const [invoices, setInvoices] = useState<Invoice[]>([])
@@ -50,16 +63,16 @@ export default function InvoicesPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [editingInvoice, setEditingInvoice] = useState<Invoice | null>(null)
+  
   const [newInvoice, setNewInvoice] = useState({
     clientId: '',
-    invoiceNumber: '',
-    issueDate: new Date().toISOString().split('T')[0],
     dueDate: '',
-    status: 'draft',
-    subtotal: '',
-    tax: '',
+    status: 'unpaid',
     notes: ''
   })
+
+  const [lineItems, setLineItems] = useState<LineItem[]>([])
+  const [editLineItems, setEditLineItems] = useState<LineItem[]>([])
 
   const fetchInvoices = async () => {
     try {
@@ -77,7 +90,7 @@ export default function InvoicesPage() {
       }
       
       const result = await response.json()
-      const data = result.success ? result.data : result
+      const data = result.data || result
       setInvoices(Array.isArray(data) ? data : [])
     } catch (error: any) {
       toast.error(error.message || 'Failed to fetch invoices')
@@ -96,7 +109,7 @@ export default function InvoicesPage() {
       
       if (response.ok) {
         const result = await response.json()
-        const data = result.success ? result.data : result
+        const data = result.data || result
         setClients(Array.isArray(data) ? data : [])
       }
     } catch (error: any) {
@@ -105,14 +118,34 @@ export default function InvoicesPage() {
     }
   }
 
+  const calculateTotals = (items: LineItem[], clientId?: string) => {
+    const subtotal = items.reduce((sum, item) => sum + item.total, 0)
+    
+    let taxRate = 0
+    if (clientId) {
+      const client = clients.find(c => c.id.toString() === clientId)
+      if (client && client.autoCalculateTax && client.taxRate) {
+        taxRate = parseFloat(client.taxRate) / 100
+      }
+    }
+    
+    const tax = subtotal * taxRate
+    const total = subtotal + tax
+    
+    return { subtotal, tax, total }
+  }
+
   const createInvoice = async (e: React.FormEvent) => {
     e.preventDefault()
 
+    if (lineItems.length === 0) {
+      toast.error('Please add at least one line item')
+      return
+    }
+
     try {
       const token = localStorage.getItem('bearer_token')
-      const subtotal = parseFloat(newInvoice.subtotal)
-      const tax = parseFloat(newInvoice.tax || '0')
-      const total = subtotal + tax
+      const { subtotal, tax, total } = calculateTotals(lineItems, newInvoice.clientId)
 
       const response = await fetch('/api/lumenr/invoices', {
         method: 'POST',
@@ -122,33 +155,32 @@ export default function InvoicesPage() {
         },
         body: JSON.stringify({
           clientId: parseInt(newInvoice.clientId),
-          invoiceNumber: newInvoice.invoiceNumber,
-          issueDate: newInvoice.issueDate,
-          dueDate: newInvoice.dueDate,
-          status: newInvoice.status,
+          items: lineItems,
           subtotal,
           tax,
           total,
+          status: newInvoice.status,
+          dueDate: newInvoice.dueDate || null,
           notes: newInvoice.notes || null
         })
       })
 
+      const result = await response.json()
+
       if (!response.ok) {
-        throw new Error('Failed to create invoice')
+        const errorMessage = result.error || 'Failed to create invoice'
+        throw new Error(errorMessage)
       }
 
       toast.success('Invoice created successfully')
 
       setNewInvoice({
         clientId: '',
-        invoiceNumber: '',
-        issueDate: new Date().toISOString().split('T')[0],
         dueDate: '',
-        status: 'draft',
-        subtotal: '',
-        tax: '',
+        status: 'unpaid',
         notes: ''
       })
+      setLineItems([])
       setIsDialogOpen(false)
       fetchInvoices()
     } catch (error: any) {
@@ -160,25 +192,42 @@ export default function InvoicesPage() {
     e.preventDefault()
     if (!editingInvoice) return
 
+    if (editLineItems.length === 0) {
+      toast.error('Please add at least one line item')
+      return
+    }
+
     try {
       const token = localStorage.getItem('bearer_token')
+      const { subtotal, tax, total } = calculateTotals(editLineItems, editingInvoice.clientId.toString())
+
       const response = await fetch(`/api/lumenr/invoices?id=${editingInvoice.id}`, {
         method: 'PUT',
         headers: { 
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify(editingInvoice)
+        body: JSON.stringify({
+          ...editingInvoice,
+          items: editLineItems,
+          subtotal,
+          tax,
+          total
+        })
       })
 
+      const result = await response.json()
+
       if (!response.ok) {
-        throw new Error('Failed to update invoice')
+        const errorMessage = result.error || 'Failed to update invoice'
+        throw new Error(errorMessage)
       }
 
       toast.success('Invoice updated successfully')
 
       setIsEditDialogOpen(false)
       setEditingInvoice(null)
+      setEditLineItems([])
       fetchInvoices()
     } catch (error: any) {
       toast.error(error.message)
@@ -204,27 +253,9 @@ export default function InvoicesPage() {
     }
   }
 
-  const markAsPaid = async (invoiceId: number) => {
-    try {
-      const token = localStorage.getItem('bearer_token')
-      const response = await fetch(`/api/lumenr/invoices/${invoiceId}/mark-paid`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` }
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to mark invoice as paid')
-      }
-
-      toast.success('Invoice marked as paid')
-      fetchInvoices()
-    } catch (error: any) {
-      toast.error(error.message)
-    }
-  }
-
   const handleEditInvoice = (invoice: Invoice) => {
     setEditingInvoice(invoice)
+    setEditLineItems(invoice.items || [])
     setIsEditDialogOpen(true)
   }
 
@@ -240,28 +271,27 @@ export default function InvoicesPage() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'draft': return 'bg-gray-500'
-      case 'sent': return 'bg-blue-500'
+      case 'unpaid': return 'bg-yellow-500'
+      case 'partially_paid': return 'bg-blue-500'
       case 'paid': return 'bg-green-500'
       case 'overdue': return 'bg-red-500'
-      case 'cancelled': return 'bg-orange-500'
+      case 'cancelled': return 'bg-gray-500'
       default: return 'bg-gray-500'
     }
   }
 
   const filteredInvoices = invoices.filter(invoice => {
-    const matchesSearch = 
-      invoice.invoiceNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      getClientName(invoice.clientId).toLowerCase().includes(searchTerm.toLowerCase())
-    
+    const matchesSearch = getClientName(invoice.clientId).toLowerCase().includes(searchTerm.toLowerCase())
     const matchesStatus = statusFilter === 'all' || invoice.status === statusFilter
-
     return matchesSearch && matchesStatus
   })
 
   const totalRevenue = filteredInvoices
     .filter(inv => inv.status === 'paid')
-    .reduce((sum, inv) => sum + inv.total, 0)
+    .reduce((sum, inv) => sum + (inv.total || 0), 0)
+
+  const totals = calculateTotals(lineItems, newInvoice.clientId)
+  const editTotals = editingInvoice ? calculateTotals(editLineItems, editingInvoice.clientId.toString()) : { subtotal: 0, tax: 0, total: 0 }
 
   if (loading) {
     return (
@@ -286,7 +316,7 @@ export default function InvoicesPage() {
               New Invoice
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Create New Invoice</DialogTitle>
             </DialogHeader>
@@ -309,85 +339,57 @@ export default function InvoicesPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="invoiceNumber">Invoice Number *</Label>
-                  <Input
-                    id="invoiceNumber"
-                    value={newInvoice.invoiceNumber}
-                    onChange={(e) => setNewInvoice({ ...newInvoice, invoiceNumber: e.target.value })}
-                    required
-                    placeholder="INV-001"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="issueDate">Issue Date *</Label>
-                  <Input
-                    id="issueDate"
-                    type="date"
-                    value={newInvoice.issueDate}
-                    onChange={(e) => setNewInvoice({ ...newInvoice, issueDate: e.target.value })}
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="dueDate">Due Date *</Label>
+                  <Label htmlFor="dueDate">Due Date</Label>
                   <Input
                     id="dueDate"
                     type="date"
                     value={newInvoice.dueDate}
                     onChange={(e) => setNewInvoice({ ...newInvoice, dueDate: e.target.value })}
-                    required
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="subtotal">Subtotal *</Label>
-                  <Input
-                    id="subtotal"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={newInvoice.subtotal}
-                    onChange={(e) => setNewInvoice({ ...newInvoice, subtotal: e.target.value })}
-                    required
-                    placeholder="0.00"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="tax">Tax</Label>
-                  <Input
-                    id="tax"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={newInvoice.tax}
-                    onChange={(e) => setNewInvoice({ ...newInvoice, tax: e.target.value })}
-                    placeholder="0.00"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="status">Status *</Label>
-                  <Select value={newInvoice.status} onValueChange={(value) => setNewInvoice({ ...newInvoice, status: value })}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {STATUS_OPTIONS.map(status => (
-                        <SelectItem key={status} value={status}>
-                          {status.charAt(0).toUpperCase() + status.slice(1)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="status">Status *</Label>
+                <Select value={newInvoice.status} onValueChange={(value) => setNewInvoice({ ...newInvoice, status: value })}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {STATUS_OPTIONS.map(status => (
+                      <SelectItem key={status} value={status}>
+                        {status.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
+
+              <LineItemsEditor
+                items={lineItems}
+                onChange={setLineItems}
+                currency="USD"
+              />
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Invoice Summary</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <div className="flex justify-between">
+                    <span>Subtotal:</span>
+                    <span className="font-semibold">${totals.subtotal.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Tax:</span>
+                    <span className="font-semibold">${totals.tax.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-lg font-bold">
+                    <span>Total:</span>
+                    <span>${totals.total.toFixed(2)}</span>
+                  </div>
+                </CardContent>
+              </Card>
               
               <div className="space-y-2">
                 <Label htmlFor="notes">Notes</Label>
@@ -411,145 +413,230 @@ export default function InvoicesPage() {
         </Dialog>
       </div>
 
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Total Invoices</CardTitle>
+            <FileText className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{filteredInvoices.length}</div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+            <CheckCircle className="h-4 w-4 text-green-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">${totalRevenue.toFixed(2)}</div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Pending</CardTitle>
+            <FileText className="h-4 w-4 text-yellow-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {filteredInvoices.filter(inv => inv.status === 'unpaid' || inv.status === 'partially_paid').length}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+        <div className="relative flex-1 w-full">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search invoices..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
+            className="pl-9"
           />
         </div>
 
         <Tabs value={statusFilter} onValueChange={setStatusFilter} className="w-full sm:w-auto">
-          <TabsList>
+          <TabsList className="grid grid-cols-3 sm:grid-cols-6 w-full">
             <TabsTrigger value="all">All</TabsTrigger>
-            {STATUS_OPTIONS.map(status => (
-              <TabsTrigger key={status} value={status}>
-                {status.charAt(0).toUpperCase() + status.slice(1)}
-              </TabsTrigger>
-            ))}
+            <TabsTrigger value="unpaid">Unpaid</TabsTrigger>
+            <TabsTrigger value="partially_paid">Partial</TabsTrigger>
+            <TabsTrigger value="paid">Paid</TabsTrigger>
+            <TabsTrigger value="overdue">Overdue</TabsTrigger>
+            <TabsTrigger value="cancelled">Cancelled</TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
 
-      <div className="bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-950 dark:to-blue-950 p-4 rounded-lg border">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm text-muted-foreground">Total Revenue (Paid)</p>
-            <p className="text-2xl font-bold">${totalRevenue.toFixed(2)}</p>
-          </div>
-          <div className="text-sm text-muted-foreground">
-            {filteredInvoices.length} invoice{filteredInvoices.length !== 1 ? 's' : ''}
-          </div>
-        </div>
-      </div>
+      <div className="space-y-3">
+        {filteredInvoices.length === 0 ? (
+          <Card>
+            <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+              <FileText className="h-12 w-12 text-muted-foreground mb-4" />
+              <h3 className="text-lg font-semibold mb-2">No invoices found</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Get started by creating your first invoice
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
+          filteredInvoices.map((invoice) => (
+            <Card key={invoice.id} className="hover:shadow-md transition-shadow">
+              <CardContent className="p-4 sm:p-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="space-y-1 flex-1">
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-semibold text-lg">{getClientName(invoice.clientId)}</h3>
+                      <Badge className={getStatusColor(invoice.status)}>
+                        {invoice.status.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                      </Badge>
+                    </div>
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-sm text-muted-foreground">
+                      <span>{invoice.items?.length || 0} items</span>
+                      {invoice.dueDate && <span>Due: {new Date(invoice.dueDate).toLocaleDateString()}</span>}
+                    </div>
+                  </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredInvoices.map((invoice) => (
-          <motion.div
-            key={invoice.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            whileHover={{ scale: 1.02 }}
-            className="h-full"
-          >
-            <Card className="h-full hover:shadow-lg transition-all duration-300">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <div className="flex items-center space-x-2 flex-1 min-w-0">
-                  <FileText className="h-5 w-5 text-primary flex-shrink-0" />
-                  <CardTitle className="text-lg font-semibold truncate">
-                    {invoice.invoiceNumber}
-                  </CardTitle>
-                </div>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="flex-shrink-0">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => handleEditInvoice(invoice)}>
-                      <Edit className="h-4 w-4 mr-2" />
-                      Edit Invoice
-                    </DropdownMenuItem>
-                    {invoice.status !== 'paid' && (
-                      <DropdownMenuItem onClick={() => markAsPaid(invoice.id)}>
-                        <CheckCircle className="h-4 w-4 mr-2" />
-                        Mark as Paid
-                      </DropdownMenuItem>
-                    )}
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Delete Invoice
+                  <div className="flex items-center gap-4">
+                    <div className="text-right">
+                      <div className="text-2xl font-bold">${(invoice.total || 0).toFixed(2)}</div>
+                    </div>
+
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => handleEditInvoice(invoice)}>
+                          <Edit className="h-4 w-4 mr-2" />
+                          Edit
                         </DropdownMenuItem>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            This action cannot be undone. This will permanently delete the invoice
-                            "{invoice.invoiceNumber}".
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => deleteInvoice(invoice.id)}>
-                            Delete
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <Badge className={`${getStatusColor(invoice.status)} text-white`}>
-                    {invoice.status}
-                  </Badge>
-                  <span className="text-lg font-bold">${Number(invoice.total || 0).toFixed(2)}</span>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete
+                            </DropdownMenuItem>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This will permanently delete this invoice. This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => deleteInvoice(invoice.id)}>
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                 </div>
-
-                <div className="text-sm">
-                  <span className="text-muted-foreground">Client: </span>
-                  <span className="font-medium">{getClientName(invoice.clientId)}</span>
-                </div>
-
-                <div className="text-sm text-muted-foreground">
-                  <div>Issued: {new Date(invoice.issueDate).toLocaleDateString()}</div>
-                  <div>Due: {new Date(invoice.dueDate).toLocaleDateString()}</div>
-                </div>
-
-                {invoice.notes && (
-                  <p className="text-sm text-muted-foreground line-clamp-2 pt-2 border-t">
-                    {invoice.notes}
-                  </p>
-                )}
               </CardContent>
             </Card>
-          </motion.div>
-        ))}
+          ))
+        )}
       </div>
 
-      {filteredInvoices.length === 0 && (
-        <div className="text-center py-12">
-          <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <h3 className="text-lg font-semibold mb-2">No invoices found</h3>
-          <p className="text-muted-foreground mb-4">
-            {searchTerm ? 'No invoices match your search.' : 'Create your first invoice to get started.'}
-          </p>
-          {!searchTerm && (
-            <Button onClick={() => setIsDialogOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Create Invoice
-            </Button>
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Invoice</DialogTitle>
+          </DialogHeader>
+          {editingInvoice && (
+            <form onSubmit={updateInvoice} className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Client</Label>
+                  <Input value={getClientName(editingInvoice.clientId)} disabled className="bg-muted" />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="editDueDate">Due Date</Label>
+                  <Input
+                    id="editDueDate"
+                    type="date"
+                    value={editingInvoice.dueDate || ''}
+                    onChange={(e) => setEditingInvoice({ ...editingInvoice, dueDate: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="editStatus">Status *</Label>
+                <Select 
+                  value={editingInvoice.status} 
+                  onValueChange={(value) => setEditingInvoice({ ...editingInvoice, status: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {STATUS_OPTIONS.map(status => (
+                      <SelectItem key={status} value={status}>
+                        {status.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <LineItemsEditor
+                items={editLineItems}
+                onChange={setEditLineItems}
+                currency="USD"
+              />
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Invoice Summary</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <div className="flex justify-between">
+                    <span>Subtotal:</span>
+                    <span className="font-semibold">${editTotals.subtotal.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Tax:</span>
+                    <span className="font-semibold">${editTotals.tax.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-lg font-bold">
+                    <span>Total:</span>
+                    <span>${editTotals.total.toFixed(2)}</span>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <div className="space-y-2">
+                <Label htmlFor="editNotes">Notes</Label>
+                <Textarea
+                  id="editNotes"
+                  value={editingInvoice.notes || ''}
+                  onChange={(e) => setEditingInvoice({ ...editingInvoice, notes: e.target.value })}
+                  rows={3}
+                  placeholder="Payment terms, additional information..."
+                />
+              </div>
+
+              <div className="flex justify-end space-x-2">
+                <Button type="button" variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit">Update Invoice</Button>
+              </div>
+            </form>
           )}
-        </div>
-      )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

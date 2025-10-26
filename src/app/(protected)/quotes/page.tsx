@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Plus, Search, FileText, MoreHorizontal, Edit, Trash2, CheckCircle, Send } from 'lucide-react'
+import { Plus, Search, FileText, MoreHorizontal, Edit, Trash2, CheckCircle, Send, ArrowRight } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -15,25 +15,37 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import LineItemsEditor from '@/components/LineItems/LineItemsEditor'
 
 interface Client {
   id: number
   name: string
   email: string
   company: string | null
+  taxRate: string | null
+  autoCalculateTax: boolean
+}
+
+interface LineItem {
+  id: string
+  type: 'product' | 'service'
+  itemId: number | null
+  name: string
+  description: string
+  quantity: number
+  price: number
+  total: number
 }
 
 interface Quote {
   id: number
   clientId: number
   userId: string
-  quoteNumber: string
-  issueDate: string
-  validUntil: string
-  status: string
+  items: LineItem[]
   subtotal: number
   tax: number
   total: number
+  status: string
   notes: string | null
   createdAt: string
   updatedAt: string
@@ -48,16 +60,17 @@ export default function QuotesPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+  const [editingQuote, setEditingQuote] = useState<Quote | null>(null)
+  
   const [newQuote, setNewQuote] = useState({
     clientId: '',
-    quoteNumber: '',
-    issueDate: new Date().toISOString().split('T')[0],
-    validUntil: '',
     status: 'draft',
-    subtotal: '',
-    tax: '',
     notes: ''
   })
+
+  const [lineItems, setLineItems] = useState<LineItem[]>([])
+  const [editLineItems, setEditLineItems] = useState<LineItem[]>([])
 
   const fetchQuotes = async () => {
     try {
@@ -75,7 +88,7 @@ export default function QuotesPage() {
       }
       
       const result = await response.json()
-      const data = result.success ? result.data : result
+      const data = result.data || result
       setQuotes(Array.isArray(data) ? data : [])
     } catch (error: any) {
       toast.error(error.message || 'Failed to fetch quotes')
@@ -94,7 +107,7 @@ export default function QuotesPage() {
       
       if (response.ok) {
         const result = await response.json()
-        const data = result.success ? result.data : result
+        const data = result.data || result
         setClients(Array.isArray(data) ? data : [])
       }
     } catch (error: any) {
@@ -103,14 +116,34 @@ export default function QuotesPage() {
     }
   }
 
+  const calculateTotals = (items: LineItem[], clientId?: string) => {
+    const subtotal = items.reduce((sum, item) => sum + item.total, 0)
+    
+    let taxRate = 0
+    if (clientId) {
+      const client = clients.find(c => c.id.toString() === clientId)
+      if (client && client.autoCalculateTax && client.taxRate) {
+        taxRate = parseFloat(client.taxRate) / 100
+      }
+    }
+    
+    const tax = subtotal * taxRate
+    const total = subtotal + tax
+    
+    return { subtotal, tax, total }
+  }
+
   const createQuote = async (e: React.FormEvent) => {
     e.preventDefault()
 
+    if (lineItems.length === 0) {
+      toast.error('Please add at least one line item')
+      return
+    }
+
     try {
       const token = localStorage.getItem('bearer_token')
-      const subtotal = parseFloat(newQuote.subtotal)
-      const tax = parseFloat(newQuote.tax || '0')
-      const total = subtotal + tax
+      const { subtotal, tax, total } = calculateTotals(lineItems, newQuote.clientId)
 
       const response = await fetch('/api/lumenr/quotes', {
         method: 'POST',
@@ -120,34 +153,77 @@ export default function QuotesPage() {
         },
         body: JSON.stringify({
           clientId: parseInt(newQuote.clientId),
-          quoteNumber: newQuote.quoteNumber,
-          issueDate: newQuote.issueDate,
-          validUntil: newQuote.validUntil,
-          status: newQuote.status,
+          items: lineItems,
           subtotal,
           tax,
           total,
+          status: newQuote.status,
           notes: newQuote.notes || null
         })
       })
 
+      const result = await response.json()
+
       if (!response.ok) {
-        throw new Error('Failed to create quote')
+        const errorMessage = result.error || 'Failed to create quote'
+        throw new Error(errorMessage)
       }
 
       toast.success('Quote created successfully')
 
       setNewQuote({
         clientId: '',
-        quoteNumber: '',
-        issueDate: new Date().toISOString().split('T')[0],
-        validUntil: '',
         status: 'draft',
-        subtotal: '',
-        tax: '',
         notes: ''
       })
+      setLineItems([])
       setIsDialogOpen(false)
+      fetchQuotes()
+    } catch (error: any) {
+      toast.error(error.message)
+    }
+  }
+
+  const updateQuote = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!editingQuote) return
+
+    if (editLineItems.length === 0) {
+      toast.error('Please add at least one line item')
+      return
+    }
+
+    try {
+      const token = localStorage.getItem('bearer_token')
+      const { subtotal, tax, total } = calculateTotals(editLineItems, editingQuote.clientId.toString())
+
+      const response = await fetch(`/api/lumenr/quotes?id=${editingQuote.id}`, {
+        method: 'PUT',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          ...editingQuote,
+          items: editLineItems,
+          subtotal,
+          tax,
+          total
+        })
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        const errorMessage = result.error || 'Failed to update quote'
+        throw new Error(errorMessage)
+      }
+
+      toast.success('Quote updated successfully')
+
+      setIsEditDialogOpen(false)
+      setEditingQuote(null)
+      setEditLineItems([])
       fetchQuotes()
     } catch (error: any) {
       toast.error(error.message)
@@ -173,23 +249,56 @@ export default function QuotesPage() {
     }
   }
 
-  const convertToInvoice = async (quoteId: number) => {
+  const convertToInvoice = async (quote: Quote) => {
     try {
       const token = localStorage.getItem('bearer_token')
-      const response = await fetch(`/api/lumenr/quotes/${quoteId}/convert-to-invoice`, {
+      
+      const response = await fetch('/api/lumenr/invoices', {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          quoteId: quote.id,
+          clientId: quote.clientId,
+          items: quote.items,
+          subtotal: quote.subtotal,
+          tax: quote.tax,
+          total: quote.total,
+          status: 'unpaid',
+          notes: quote.notes
+        })
       })
 
+      const result = await response.json()
+
       if (!response.ok) {
-        throw new Error('Failed to convert quote to invoice')
+        const errorMessage = result.error || 'Failed to convert quote to invoice'
+        throw new Error(errorMessage)
       }
 
       toast.success('Quote converted to invoice successfully')
+      
+      await fetch(`/api/lumenr/quotes?id=${quote.id}`, {
+        method: 'PUT',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ ...quote, status: 'accepted' })
+      })
+      
       fetchQuotes()
     } catch (error: any) {
       toast.error(error.message)
     }
+  }
+
+  const handleEditQuote = (quote: Quote) => {
+    setEditingQuote(quote)
+    setEditLineItems(quote.items || [])
+    setIsEditDialogOpen(true)
   }
 
   const getClientName = (clientId: number) => {
@@ -214,18 +323,13 @@ export default function QuotesPage() {
   }
 
   const filteredQuotes = quotes.filter(quote => {
-    const matchesSearch = 
-      quote.quoteNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      getClientName(quote.clientId).toLowerCase().includes(searchTerm.toLowerCase())
-    
+    const matchesSearch = getClientName(quote.clientId).toLowerCase().includes(searchTerm.toLowerCase())
     const matchesStatus = statusFilter === 'all' || quote.status === statusFilter
-
     return matchesSearch && matchesStatus
   })
 
-  const totalValue = filteredQuotes
-    .filter(q => q.status === 'accepted')
-    .reduce((sum, q) => sum + q.total, 0)
+  const totals = calculateTotals(lineItems, newQuote.clientId)
+  const editTotals = editingQuote ? calculateTotals(editLineItems, editingQuote.clientId.toString()) : { subtotal: 0, tax: 0, total: 0 }
 
   if (loading) {
     return (
@@ -240,7 +344,7 @@ export default function QuotesPage() {
       <div className="flex flex-col sm:flex-row gap-4 sm:items-center justify-between">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Quotes</h1>
-          <p className="text-muted-foreground text-sm sm:text-base">Create and send quotes to clients</p>
+          <p className="text-muted-foreground text-sm sm:text-base">Create and manage your quotes</p>
         </div>
         
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -250,7 +354,7 @@ export default function QuotesPage() {
               New Quote
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Create New Quote</DialogTitle>
             </DialogHeader>
@@ -273,70 +377,6 @@ export default function QuotesPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="quoteNumber">Quote Number *</Label>
-                  <Input
-                    id="quoteNumber"
-                    value={newQuote.quoteNumber}
-                    onChange={(e) => setNewQuote({ ...newQuote, quoteNumber: e.target.value })}
-                    required
-                    placeholder="QUO-001"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="issueDate">Issue Date *</Label>
-                  <Input
-                    id="issueDate"
-                    type="date"
-                    value={newQuote.issueDate}
-                    onChange={(e) => setNewQuote({ ...newQuote, issueDate: e.target.value })}
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="validUntil">Valid Until *</Label>
-                  <Input
-                    id="validUntil"
-                    type="date"
-                    value={newQuote.validUntil}
-                    onChange={(e) => setNewQuote({ ...newQuote, validUntil: e.target.value })}
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="subtotal">Subtotal *</Label>
-                  <Input
-                    id="subtotal"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={newQuote.subtotal}
-                    onChange={(e) => setNewQuote({ ...newQuote, subtotal: e.target.value })}
-                    required
-                    placeholder="0.00"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="tax">Tax</Label>
-                  <Input
-                    id="tax"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={newQuote.tax}
-                    onChange={(e) => setNewQuote({ ...newQuote, tax: e.target.value })}
-                    placeholder="0.00"
-                  />
-                </div>
-
-                <div className="space-y-2">
                   <Label htmlFor="status">Status *</Label>
                   <Select value={newQuote.status} onValueChange={(value) => setNewQuote({ ...newQuote, status: value })}>
                     <SelectTrigger>
@@ -352,6 +392,32 @@ export default function QuotesPage() {
                   </Select>
                 </div>
               </div>
+
+              <LineItemsEditor
+                items={lineItems}
+                onChange={setLineItems}
+                currency="USD"
+              />
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Quote Summary</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <div className="flex justify-between">
+                    <span>Subtotal:</span>
+                    <span className="font-semibold">${totals.subtotal.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Tax:</span>
+                    <span className="font-semibold">${totals.tax.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-lg font-bold">
+                    <span>Total:</span>
+                    <span>${totals.total.toFixed(2)}</span>
+                  </div>
+                </CardContent>
+              </Card>
               
               <div className="space-y-2">
                 <Label htmlFor="notes">Notes</Label>
@@ -360,7 +426,7 @@ export default function QuotesPage() {
                   value={newQuote.notes}
                   onChange={(e) => setNewQuote({ ...newQuote, notes: e.target.value })}
                   rows={3}
-                  placeholder="Terms, conditions, additional information..."
+                  placeholder="Additional terms, conditions..."
                 />
               </div>
 
@@ -375,141 +441,228 @@ export default function QuotesPage() {
         </Dialog>
       </div>
 
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Total Quotes</CardTitle>
+            <FileText className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{filteredQuotes.length}</div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Accepted</CardTitle>
+            <CheckCircle className="h-4 w-4 text-green-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {filteredQuotes.filter(q => q.status === 'accepted').length}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Pending</CardTitle>
+            <FileText className="h-4 w-4 text-blue-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {filteredQuotes.filter(q => q.status === 'draft' || q.status === 'sent').length}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+        <div className="relative flex-1 w-full">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search quotes..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
+            className="pl-9"
           />
         </div>
 
         <Tabs value={statusFilter} onValueChange={setStatusFilter} className="w-full sm:w-auto">
-          <TabsList>
+          <TabsList className="grid grid-cols-3 sm:grid-cols-6 w-full">
             <TabsTrigger value="all">All</TabsTrigger>
-            {STATUS_OPTIONS.map(status => (
-              <TabsTrigger key={status} value={status}>
-                {status.charAt(0).toUpperCase() + status.slice(1)}
-              </TabsTrigger>
-            ))}
+            <TabsTrigger value="draft">Draft</TabsTrigger>
+            <TabsTrigger value="sent">Sent</TabsTrigger>
+            <TabsTrigger value="accepted">Accepted</TabsTrigger>
+            <TabsTrigger value="declined">Declined</TabsTrigger>
+            <TabsTrigger value="expired">Expired</TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
 
-      <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-950 dark:to-blue-950 p-4 rounded-lg border">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm text-muted-foreground">Total Value (Accepted)</p>
-            <p className="text-2xl font-bold">${totalValue.toFixed(2)}</p>
-          </div>
-          <div className="text-sm text-muted-foreground">
-            {filteredQuotes.length} quote{filteredQuotes.length !== 1 ? 's' : ''}
-          </div>
-        </div>
-      </div>
+      <div className="space-y-3">
+        {filteredQuotes.length === 0 ? (
+          <Card>
+            <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+              <FileText className="h-12 w-12 text-muted-foreground mb-4" />
+              <h3 className="text-lg font-semibold mb-2">No quotes found</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Get started by creating your first quote
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
+          filteredQuotes.map((quote) => (
+            <Card key={quote.id} className="hover:shadow-md transition-shadow">
+              <CardContent className="p-4 sm:p-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="space-y-1 flex-1">
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-semibold text-lg">{getClientName(quote.clientId)}</h3>
+                      <Badge className={getStatusColor(quote.status)}>
+                        {quote.status.charAt(0).toUpperCase() + quote.status.slice(1)}
+                      </Badge>
+                    </div>
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-sm text-muted-foreground">
+                      <span>{quote.items?.length || 0} items</span>
+                      <span>Created: {new Date(quote.createdAt).toLocaleDateString()}</span>
+                    </div>
+                  </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredQuotes.map((quote) => (
-          <motion.div
-            key={quote.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            whileHover={{ scale: 1.02 }}
-            className="h-full"
-          >
-            <Card className="h-full hover:shadow-lg transition-all duration-300">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <div className="flex items-center space-x-2 flex-1 min-w-0">
-                  <FileText className="h-5 w-5 text-primary flex-shrink-0" />
-                  <CardTitle className="text-lg font-semibold truncate">
-                    {quote.quoteNumber}
-                  </CardTitle>
-                </div>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="flex-shrink-0">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    {quote.status === 'accepted' && (
-                      <DropdownMenuItem onClick={() => convertToInvoice(quote.id)}>
-                        <CheckCircle className="h-4 w-4 mr-2" />
-                        Convert to Invoice
-                      </DropdownMenuItem>
-                    )}
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Delete Quote
+                  <div className="flex items-center gap-4">
+                    <div className="text-right">
+                      <div className="text-2xl font-bold">${(quote.total || 0).toFixed(2)}</div>
+                    </div>
+
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => handleEditQuote(quote)}>
+                          <Edit className="h-4 w-4 mr-2" />
+                          Edit
                         </DropdownMenuItem>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            This action cannot be undone. This will permanently delete the quote
-                            "{quote.quoteNumber}".
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => deleteQuote(quote.id)}>
-                            Delete
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <Badge className={`${getStatusColor(quote.status)} text-white`}>
-                    {quote.status}
-                  </Badge>
-                  <span className="text-lg font-bold">${Number(quote.total || 0).toFixed(2)}</span>
+                        {quote.status === 'accepted' && (
+                          <DropdownMenuItem onClick={() => convertToInvoice(quote)}>
+                            <ArrowRight className="h-4 w-4 mr-2" />
+                            Convert to Invoice
+                          </DropdownMenuItem>
+                        )}
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete
+                            </DropdownMenuItem>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This will permanently delete this quote. This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => deleteQuote(quote.id)}>
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                 </div>
-
-                <div className="text-sm">
-                  <span className="text-muted-foreground">Client: </span>
-                  <span className="font-medium">{getClientName(quote.clientId)}</span>
-                </div>
-
-                <div className="text-sm text-muted-foreground">
-                  <div>Issued: {new Date(quote.issueDate).toLocaleDateString()}</div>
-                  <div>Valid Until: {new Date(quote.validUntil).toLocaleDateString()}</div>
-                </div>
-
-                {quote.notes && (
-                  <p className="text-sm text-muted-foreground line-clamp-2 pt-2 border-t">
-                    {quote.notes}
-                  </p>
-                )}
               </CardContent>
             </Card>
-          </motion.div>
-        ))}
+          ))
+        )}
       </div>
 
-      {filteredQuotes.length === 0 && (
-        <div className="text-center py-12">
-          <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <h3 className="text-lg font-semibold mb-2">No quotes found</h3>
-          <p className="text-muted-foreground mb-4">
-            {searchTerm ? 'No quotes match your search.' : 'Create your first quote to get started.'}
-          </p>
-          {!searchTerm && (
-            <Button onClick={() => setIsDialogOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Create Quote
-            </Button>
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Quote</DialogTitle>
+          </DialogHeader>
+          {editingQuote && (
+            <form onSubmit={updateQuote} className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Client</Label>
+                  <Input value={getClientName(editingQuote.clientId)} disabled className="bg-muted" />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="editStatus">Status *</Label>
+                  <Select 
+                    value={editingQuote.status} 
+                    onValueChange={(value) => setEditingQuote({ ...editingQuote, status: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {STATUS_OPTIONS.map(status => (
+                        <SelectItem key={status} value={status}>
+                          {status.charAt(0).toUpperCase() + status.slice(1)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <LineItemsEditor
+                items={editLineItems}
+                onChange={setEditLineItems}
+                currency="USD"
+              />
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Quote Summary</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <div className="flex justify-between">
+                    <span>Subtotal:</span>
+                    <span className="font-semibold">${editTotals.subtotal.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Tax:</span>
+                    <span className="font-semibold">${editTotals.tax.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-lg font-bold">
+                    <span>Total:</span>
+                    <span>${editTotals.total.toFixed(2)}</span>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <div className="space-y-2">
+                <Label htmlFor="editNotes">Notes</Label>
+                <Textarea
+                  id="editNotes"
+                  value={editingQuote.notes || ''}
+                  onChange={(e) => setEditingQuote({ ...editingQuote, notes: e.target.value })}
+                  rows={3}
+                  placeholder="Additional terms, conditions..."
+                />
+              </div>
+
+              <div className="flex justify-end space-x-2">
+                <Button type="button" variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit">Update Quote</Button>
+              </div>
+            </form>
           )}
-        </div>
-      )}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
