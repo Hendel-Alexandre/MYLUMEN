@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
       return jsonError('User ID cannot be provided in request body', 400);
     }
 
-    const { name, email, phone, company, taxId, address, country } = body;
+    const { name, email, phone, company, taxId, address, city, province, country } = body;
 
     // Validate required fields
     if (!name || !name.trim()) {
@@ -121,6 +121,8 @@ export async function POST(request: NextRequest) {
         company: company?.trim() || null,
         taxId: taxId?.trim() || null,
         address: address?.trim() || null,
+        city: city?.trim() || null,
+        province: province?.trim() || null,
         country: country?.trim() || null,
         userId,
         createdAt: now,
@@ -169,7 +171,7 @@ export async function PUT(request: NextRequest) {
       return jsonError('Client not found', 404);
     }
 
-    const { name, email, phone, company, taxId, address, country } = body;
+    const { name, email, phone, company, taxId, address, city, province, country } = body;
 
     // Validate email format if provided
     if (email) {
@@ -189,6 +191,8 @@ export async function PUT(request: NextRequest) {
     if (company !== undefined) updates.company = company?.trim() || null;
     if (taxId !== undefined) updates.taxId = taxId?.trim() || null;
     if (address !== undefined) updates.address = address?.trim() || null;
+    if (city !== undefined) updates.city = city?.trim() || null;
+    if (province !== undefined) updates.province = province?.trim() || null;
     if (country !== undefined) updates.country = country?.trim() || null;
 
     const updatedClient = await db.update(clients)

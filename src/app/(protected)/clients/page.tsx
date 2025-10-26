@@ -25,6 +25,8 @@ interface Client {
   company: string | null
   taxId: string | null
   address: string | null
+  city: string | null
+  province: string | null
   country: string | null
   userId: string
   createdAt: string
@@ -79,6 +81,8 @@ export default function ClientsPage() {
     company: '',
     taxId: '',
     address: '',
+    city: '',
+    province: '',
     country: ''
   })
 
@@ -175,6 +179,8 @@ export default function ClientsPage() {
         company: '',
         taxId: '',
         address: '',
+        city: '',
+        province: '',
         country: ''
       })
       setIsDialogOpen(false)
@@ -330,14 +336,34 @@ export default function ClientsPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="taxId">Tax ID</Label>
+                <Input
+                  id="taxId"
+                  value={newClient.taxId}
+                  onChange={(e) => setNewClient({ ...newClient, taxId: e.target.value })}
+                  placeholder="12-3456789"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="taxId">Tax ID</Label>
+                  <Label htmlFor="city">City</Label>
                   <Input
-                    id="taxId"
-                    value={newClient.taxId}
-                    onChange={(e) => setNewClient({ ...newClient, taxId: e.target.value })}
-                    placeholder="12-3456789"
+                    id="city"
+                    value={newClient.city}
+                    onChange={(e) => setNewClient({ ...newClient, city: e.target.value })}
+                    placeholder="New York"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="province">Province/State</Label>
+                  <Input
+                    id="province"
+                    value={newClient.province}
+                    onChange={(e) => setNewClient({ ...newClient, province: e.target.value })}
+                    placeholder="NY"
                   />
                 </div>
 
@@ -359,13 +385,13 @@ export default function ClientsPage() {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="address">Address</Label>
+                <Label htmlFor="address">Street Address</Label>
                 <Textarea
                   id="address"
                   value={newClient.address}
                   onChange={(e) => setNewClient({ ...newClient, address: e.target.value })}
-                  rows={3}
-                  placeholder="123 Main Street, City, State 12345"
+                  rows={2}
+                  placeholder="123 Main Street, Apt 4B"
                 />
               </div>
 
@@ -438,14 +464,34 @@ export default function ClientsPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="taxId">Tax ID</Label>
+                <Input
+                  id="taxId"
+                  value={editingClient?.taxId || ''}
+                  onChange={(e) => setEditingClient({ ...editingClient, taxId: e.target.value })}
+                  placeholder="12-3456789"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="taxId">Tax ID</Label>
+                  <Label htmlFor="city">City</Label>
                   <Input
-                    id="taxId"
-                    value={editingClient?.taxId || ''}
-                    onChange={(e) => setEditingClient({ ...editingClient, taxId: e.target.value })}
-                    placeholder="12-3456789"
+                    id="city"
+                    value={editingClient?.city || ''}
+                    onChange={(e) => setEditingClient({ ...editingClient, city: e.target.value })}
+                    placeholder="New York"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="province">Province/State</Label>
+                  <Input
+                    id="province"
+                    value={editingClient?.province || ''}
+                    onChange={(e) => setEditingClient({ ...editingClient, province: e.target.value })}
+                    placeholder="NY"
                   />
                 </div>
 
@@ -467,13 +513,13 @@ export default function ClientsPage() {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="address">Address</Label>
+                <Label htmlFor="address">Street Address</Label>
                 <Textarea
                   id="address"
                   value={editingClient?.address || ''}
                   onChange={(e) => setEditingClient({ ...editingClient, address: e.target.value })}
-                  rows={3}
-                  placeholder="123 Main Street, City, State 12345"
+                  rows={2}
+                  placeholder="123 Main Street, Apt 4B"
                 />
               </div>
 

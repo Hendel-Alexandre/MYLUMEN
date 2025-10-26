@@ -9,6 +9,8 @@ export const clients = pgTable('clients', {
   company: text('company'),
   taxId: text('tax_id'),
   address: text('address'),
+  city: text('city'),
+  province: text('province'),
   country: text('country'),
   userId: text('user_id').notNull(),
   createdAt: timestamp('created_at', { mode: 'string' }).notNull(),
