@@ -18,6 +18,9 @@ import { Badge } from '@/components/ui/badge'
 import { ClientTimeline } from '@/components/Dashboard/ClientTimeline'
 import { Switch } from '@/components/ui/switch'
 import { calculateTaxRate, getTaxDescription } from '@/lib/utils/tax-calculator'
+import { generateClientTemplate, parseClientExcel, ClientImportRow } from '@/lib/utils/excel-import'
+import { Upload, Download, FileSpreadsheet, AlertCircle, CheckCircle2 } from 'lucide-react'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 
 interface Client {
   id: number
@@ -73,11 +76,15 @@ export default function ClientsPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false)
+  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false)
   const [editingClient, setEditingClient] = useState<Client | null>(null)
   const [viewingClient, setViewingClient] = useState<Client | null>(null)
   const [clientQuotes, setClientQuotes] = useState<Quote[]>([])
   const [clientInvoices, setClientInvoices] = useState<Invoice[]>([])
   const [clientContracts, setClientContracts] = useState<Contract[]>([])
+  const [importFile, setImportFile] = useState<File | null>(null)
+  const [importing, setImporting] = useState(false)
+  const [importResult, setImportResult] = useState<any>(null)
   const [newClient, setNewClient] = useState({
     name: '',
     email: '',
@@ -279,6 +286,92 @@ export default function ClientsPage() {
     setIsDetailDialogOpen(true)
   }
 
+  const handleDownloadTemplate = () => {
+    generateClientTemplate()
+    toast.success('Template downloaded successfully')
+  }
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      if (!file.name.endsWith('.xlsx') && !file.name.endsWith('.xls')) {
+        toast.error('Please upload an Excel file (.xlsx or .xls)')
+        return
+      }
+      setImportFile(file)
+      setImportResult(null)
+    }
+  }
+
+  const handleImport = async () => {
+    if (!importFile) {
+      toast.error('Please select a file to import')
+      return
+    }
+
+    setImporting(true)
+    setImportResult(null)
+
+    try {
+      const result = await parseClientExcel(importFile)
+
+      if (!result.success) {
+        const errorList = result.errors?.map(err => {
+          const match = err.match(/^Row (\d+): (.+)$/);
+          if (match) {
+            return { row: parseInt(match[1]), error: match[2] };
+          }
+          return { row: 0, error: err };
+        }) || []
+        
+        setImportResult({
+          success: false,
+          successful: 0,
+          failed: result.errors?.length || 0,
+          errors: errorList,
+          total: result.rowCount || 0
+        })
+        toast.error(`Found ${result.errors?.length || 0} validation errors in the Excel file`)
+        return
+      }
+
+      const token = localStorage.getItem('bearer_token')
+      const response = await fetch('/api/lumenr/clients/bulk-import', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ clients: result.data })
+      })
+
+      const apiResult = await response.json()
+
+      if (apiResult.success) {
+        setImportResult(apiResult.data)
+        toast.success(apiResult.data.message)
+        fetchClients()
+        if (apiResult.data.failed === 0) {
+          setTimeout(() => {
+            setIsImportDialogOpen(false)
+            setImportFile(null)
+            setImportResult(null)
+          }, 2000)
+        }
+      } else {
+        toast.error(apiResult.error || 'Import failed')
+        setImportResult({ success: false, errors: [apiResult.error] })
+      }
+
+    } catch (error) {
+      console.error('Import error:', error)
+      toast.error('Failed to import clients')
+      setImportResult({ success: false, errors: [(error as Error).message] })
+    } finally {
+      setImporting(false)
+    }
+  }
+
   useEffect(() => {
     fetchClients()
   }, [])
@@ -305,13 +398,132 @@ export default function ClientsPage() {
           <p className="text-muted-foreground text-sm sm:text-base">Manage your client relationships</p>
         </div>
         
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-gradient-primary hover:opacity-90 w-full sm:w-auto">
-              <Plus className="h-4 w-4 mr-2" />
-              New Client
-            </Button>
-          </DialogTrigger>
+        <div className="flex gap-2 flex-col sm:flex-row w-full sm:w-auto">
+          <Dialog open={isImportDialogOpen} onOpenChange={setIsImportDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="w-full sm:w-auto">
+                <Upload className="h-4 w-4 mr-2" />
+                Import
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Import Clients from Excel</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="bg-muted p-4 rounded-lg space-y-2">
+                  <p className="text-sm font-medium">Step 1: Download Template</p>
+                  <p className="text-xs text-muted-foreground">Download our Excel template with sample data and required columns</p>
+                  <Button onClick={handleDownloadTemplate} variant="outline" size="sm" className="w-full">
+                    <Download className="h-4 w-4 mr-2" />
+                    Download Template
+                  </Button>
+                </div>
+
+                <div className="bg-muted p-4 rounded-lg space-y-2">
+                  <p className="text-sm font-medium">Step 2: Upload File</p>
+                  <p className="text-xs text-muted-foreground">Fill in your client data and upload the Excel file</p>
+                  <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6 text-center">
+                    <input
+                      type="file"
+                      accept=".xlsx,.xls"
+                      onChange={handleFileSelect}
+                      className="hidden"
+                      id="file-upload"
+                    />
+                    <label htmlFor="file-upload" className="cursor-pointer">
+                      <FileSpreadsheet className="h-12 w-12 mx-auto mb-2 text-muted-foreground" />
+                      <p className="text-sm font-medium mb-1">
+                        {importFile ? importFile.name : 'Click to select Excel file'}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Supports .xlsx and .xls files
+                      </p>
+                    </label>
+                  </div>
+                </div>
+
+                {importResult && (
+                  <div className="space-y-2">
+                    {importResult.successful > 0 && (
+                      <Alert className="border-green-200 bg-green-50">
+                        <CheckCircle2 className="h-4 w-4 text-green-600" />
+                        <AlertDescription className="text-green-800">
+                          Successfully imported {importResult.successful} clients
+                        </AlertDescription>
+                      </Alert>
+                    )}
+                    
+                    {importResult.failed > 0 && importResult.errors && (
+                      <Alert className="border-red-200 bg-red-50">
+                        <AlertCircle className="h-4 w-4 text-red-600" />
+                        <AlertDescription className="text-red-800">
+                          <p className="font-medium mb-2">Failed to import {importResult.failed} clients:</p>
+                          <ul className="text-xs space-y-1 max-h-40 overflow-y-auto">
+                            {importResult.errors.map((error: any, index: number) => (
+                              <li key={index}>Row {error.row}: {error.error}</li>
+                            ))}
+                          </ul>
+                        </AlertDescription>
+                      </Alert>
+                    )}
+
+                    {!importResult.success && importResult.errors && !importResult.total && (
+                      <Alert className="border-red-200 bg-red-50">
+                        <AlertCircle className="h-4 w-4 text-red-600" />
+                        <AlertDescription className="text-red-800">
+                          <ul className="text-xs space-y-1">
+                            {importResult.errors.map((error: string, index: number) => (
+                              <li key={index}>{error}</li>
+                            ))}
+                          </ul>
+                        </AlertDescription>
+                      </Alert>
+                    )}
+                  </div>
+                )}
+
+                <div className="flex justify-end space-x-2">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => {
+                      setIsImportDialogOpen(false)
+                      setImportFile(null)
+                      setImportResult(null)
+                    }}
+                    disabled={importing}
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    onClick={handleImport} 
+                    disabled={!importFile || importing}
+                  >
+                    {importing ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                        Importing...
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="h-4 w-4 mr-2" />
+                        Import Clients
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-gradient-primary hover:opacity-90 w-full sm:w-auto">
+                <Plus className="h-4 w-4 mr-2" />
+                New Client
+              </Button>
+            </DialogTrigger>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>Create New Client</DialogTitle>
