@@ -141,6 +141,7 @@ export const bookings = pgTable('bookings', {
   duration: integer('duration').notNull().default(60),
   status: text('status').notNull().default('scheduled'),
   notes: text('notes'),
+  googleEventId: text('google_event_id'),
   createdAt: timestamp('created_at', { mode: 'string' }).notNull(),
   updatedAt: timestamp('updated_at', { mode: 'string' }).notNull(),
 });

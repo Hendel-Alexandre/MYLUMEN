@@ -57,7 +57,10 @@ export function CalendarIntegration() {
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [clients, setClients] = useState<Client[]>([]);
   const [isLoadingClients, setIsLoadingClients] = useState(false);
-  const { toast } = useToast();
+  const [showImportDialog, setShowImportDialog] = useState(false);
+  const [googleEvents, setGoogleEvents] = useState<any[]>([]);
+  const [isLoadingGoogleEvents, setIsLoadingGoogleEvents] = useState(false);
+  const { toast} = useToast();
 
   const [formData, setFormData] = useState({
     clientId: '',
@@ -246,6 +249,79 @@ export function CalendarIntegration() {
       title: 'Export',
       description: 'Calendar export feature coming soon!',
     });
+  };
+
+  const handleSyncToGoogle = async () => {
+    try {
+      const today = new Date();
+      const nextMonth = new Date();
+      nextMonth.setMonth(nextMonth.getMonth() + 1);
+
+      toast({
+        title: 'Syncing to Google Calendar',
+        description: 'This may take a moment...',
+      });
+
+      const response = await fetch('/api/lumenr/calendar/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'sync-all',
+          startDate: today.toISOString().split('T')[0],
+          endDate: nextMonth.toISOString().split('T')[0],
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to sync to Google Calendar');
+      }
+
+      const result = await response.json();
+      
+      toast({
+        title: 'Sync Complete',
+        description: `Synced ${result.data.successful} bookings (${result.data.results.filter((r: any) => r.action === 'created').length} created, ${result.data.results.filter((r: any) => r.action === 'updated').length} updated)`,
+      });
+    } catch (error) {
+      console.error('Error syncing to Google Calendar:', error);
+      toast({
+        title: 'Sync Failed',
+        description: error instanceof Error ? error.message : 'Failed to sync to Google Calendar',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleImportFromGoogle = async () => {
+    try {
+      setIsLoadingGoogleEvents(true);
+      const today = new Date();
+      const nextMonth = new Date();
+      nextMonth.setMonth(nextMonth.getMonth() + 1);
+
+      const response = await fetch(
+        `/api/lumenr/calendar/sync?action=import&startDate=${today.toISOString().split('T')[0]}&endDate=${nextMonth.toISOString().split('T')[0]}`
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to import from Google Calendar');
+      }
+
+      const result = await response.json();
+      setGoogleEvents(result.data.events || []);
+      setShowImportDialog(true);
+    } catch (error) {
+      console.error('Error importing from Google Calendar:', error);
+      toast({
+        title: 'Import Failed',
+        description: error instanceof Error ? error.message : 'Failed to import from Google Calendar',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoadingGoogleEvents(false);
+    }
   };
 
   return (
@@ -448,12 +524,25 @@ export function CalendarIntegration() {
           {/* Calendar Integrations */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Integrations</CardTitle>
+              <CardTitle className="text-lg">Google Calendar</CardTitle>
+              <CardDescription>Sync your bookings</CardDescription>
             </CardHeader>
             <CardContent className="space-y-2">
-              <Button variant="outline" className="w-full justify-start text-sm">
+              <Button 
+                variant="outline" 
+                className="w-full justify-start text-sm"
+                onClick={handleSyncToGoogle}
+              >
                 <CalendarIcon className="h-4 w-4 mr-2" />
-                Google Calendar
+                Sync to Google
+              </Button>
+              <Button 
+                variant="outline" 
+                className="w-full justify-start text-sm"
+                onClick={handleImportFromGoogle}
+              >
+                <Download className="h-4 w-4 mr-2" />
+                View Google Events
               </Button>
             </CardContent>
           </Card>
@@ -635,6 +724,60 @@ export function CalendarIntegration() {
                 Cancel
               </Button>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Import from Google Calendar Dialog */}
+      <Dialog open={showImportDialog} onOpenChange={setShowImportDialog}>
+        <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Google Calendar Events</DialogTitle>
+            <DialogDescription>
+              View your upcoming Google Calendar events for the next 30 days
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-2">
+            {isLoadingGoogleEvents ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              </div>
+            ) : googleEvents.length === 0 ? (
+              <p className="text-center text-sm text-muted-foreground py-8">
+                No upcoming events found in your Google Calendar
+              </p>
+            ) : (
+              googleEvents.map((event, index) => (
+                <div key={event.id || index} className="p-3 border rounded-lg">
+                  <div className="font-medium">{event.summary || 'Untitled Event'}</div>
+                  {event.description && (
+                    <p className="text-sm text-muted-foreground mt-1">{event.description}</p>
+                  )}
+                  <div className="text-xs text-muted-foreground mt-2">
+                    {event.start && new Date(event.start).toLocaleString('en-US', {
+                      weekday: 'short',
+                      month: 'short',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
+                  </div>
+                  {event.location && (
+                    <div className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                      <MapPin className="h-3 w-3" />
+                      {event.location}
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+
+          <div className="flex justify-end pt-4">
+            <Button variant="outline" onClick={() => setShowImportDialog(false)}>
+              Close
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
