@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Plus, Search, Receipt, MoreHorizontal, Edit, Trash2, Upload, DollarSign, Calendar } from 'lucide-react'
+import { Plus, Search, Receipt, MoreHorizontal, Edit, Trash2, Upload, DollarSign, Calendar, Scan } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import OCRReceiptUpload from '@/components/Receipts/OCRReceiptUpload'
 
 interface ReceiptItem {
   id: number
@@ -38,6 +39,7 @@ export default function ReceiptsPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [categoryFilter, setCategoryFilter] = useState<string>('all')
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [isOCRDialogOpen, setIsOCRDialogOpen] = useState(false)
   const [newReceipt, setNewReceipt] = useState({
     vendor: '',
     category: 'Office Supplies',
@@ -181,13 +183,23 @@ export default function ReceiptsPage() {
           <p className="text-muted-foreground text-sm sm:text-base">Manage your receipts and expenses</p>
         </div>
         
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-gradient-primary hover:opacity-90 w-full sm:w-auto">
-              <Plus className="h-4 w-4 mr-2" />
-              New Receipt
-            </Button>
-          </DialogTrigger>
+        <div className="flex gap-2 w-full sm:w-auto">
+          <Button 
+            onClick={() => setIsOCRDialogOpen(true)}
+            variant="outline"
+            className="flex-1 sm:flex-initial"
+          >
+            <Scan className="h-4 w-4 mr-2" />
+            Scan Receipt
+          </Button>
+          
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-gradient-primary hover:opacity-90 flex-1 sm:flex-initial">
+                <Plus className="h-4 w-4 mr-2" />
+                New Receipt
+              </Button>
+            </DialogTrigger>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>Create New Receipt</DialogTitle>
@@ -408,6 +420,13 @@ export default function ReceiptsPage() {
           )}
         </div>
       )}
+
+      <OCRReceiptUpload
+        isOpen={isOCRDialogOpen}
+        onClose={() => setIsOCRDialogOpen(false)}
+        onSuccess={fetchReceipts}
+        categories={CATEGORIES}
+      />
     </div>
   )
 }
