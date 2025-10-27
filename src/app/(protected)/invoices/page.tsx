@@ -367,10 +367,26 @@ export default function InvoicesPage() {
 
   const currentMonthCount = currentMonthInvoices.length
   const lastMonthCount = lastMonthInvoices.length
-  const invoiceChange = lastMonthCount > 0 
-    ? ((currentMonthCount - lastMonthCount) / lastMonthCount * 100).toFixed(1)
-    : '0.0'
-  const invoiceChangePositive = parseFloat(invoiceChange) >= 0
+  
+  // Handle month-over-month calculation with zero baseline
+  let invoiceChange = '0.0'
+  let invoiceChangeValue = 0
+  let isNewActivity = false
+  if (lastMonthCount === 0 && currentMonthCount > 0) {
+    // New activity this month - show as 100%+ growth
+    invoiceChange = '100'
+    invoiceChangeValue = 100
+    isNewActivity = true
+  } else if (lastMonthCount > 0) {
+    // Standard calculation
+    invoiceChangeValue = (currentMonthCount - lastMonthCount) / lastMonthCount * 100
+    invoiceChange = invoiceChangeValue.toFixed(1)
+  }
+  // else both are 0, stays at 0.0%
+  
+  const isPositive = invoiceChangeValue > 0
+  const isNegative = invoiceChangeValue < 0
+  const isNeutral = invoiceChangeValue === 0
 
   const totals = calculateTotals(lineItems, newInvoice.clientId)
   const editTotals = editingInvoice ? calculateTotals(editLineItems, editingInvoice.clientId.toString()) : { subtotal: 0, tax: 0, total: 0 }
@@ -571,8 +587,8 @@ export default function InvoicesPage() {
           className="flex items-center justify-between p-4 rounded-lg bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-500/20"
         >
           <div className="flex items-center gap-3">
-            <div className={`p-2 rounded-full ${invoiceChangePositive ? 'bg-green-500/10' : 'bg-red-500/10'}`}>
-              <FileText className={`h-5 w-5 ${invoiceChangePositive ? 'text-green-500' : 'text-red-500'}`} />
+            <div className={`p-2 rounded-full ${isPositive ? 'bg-green-500/10' : isNegative ? 'bg-red-500/10' : 'bg-muted'}`}>
+              <FileText className={`h-5 w-5 ${isPositive ? 'text-green-500' : isNegative ? 'text-red-500' : 'text-muted-foreground'}`} />
             </div>
             <div>
               <p className="text-sm font-semibold">
@@ -584,10 +600,12 @@ export default function InvoicesPage() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <span className={`text-2xl font-bold ${invoiceChangePositive ? 'text-green-500' : 'text-red-500'}`}>
-              {invoiceChangePositive ? '+' : ''}{invoiceChange}%
+            <span className={`text-2xl font-bold ${isPositive ? 'text-green-500' : isNegative ? 'text-red-500' : 'text-muted-foreground'}`}>
+              {isPositive ? '+' : ''}{invoiceChange}%
             </span>
-            <span className="text-xs text-muted-foreground">vs last month</span>
+            <span className="text-xs text-muted-foreground">
+              {isNewActivity ? 'new activity' : isNeutral && currentMonthCount === 0 ? 'no activity' : 'vs last month'}
+            </span>
           </div>
         </motion.div>
       )}
