@@ -116,6 +116,11 @@ Preferred communication style: Simple, everyday language.
 -   **Implementation Plan:** Email functionality code is ready but deferred until user provides API key
 -   **Features Ready:** Send quotes/invoices via email, attachment support for PDFs
 
+### Calendar Integrations (Available)
+-   **Google Calendar:** Replit connector available (`connector:ccfg_google-calendar_DDDBAC03DE404369B74F32E78D`) - dismissed by user
+-   **Outlook Calendar:** Replit connector available (`connector:ccfg_outlook_01K4BBCKRJKP82N3PYQPZQ6DAK`) - available for setup
+-   **Note:** User can set up these integrations anytime via Settings > Integrations for two-way calendar sync
+
 ### Database Setup & Migration (Critical Fix)
 -   **Database Tables Created:** All 11 missing database tables created successfully: `clients`, `products`, `services`, `quotes`, `invoices`, `contracts`, `receipts`, `payments`, `business_profiles`, `bookings`, and `user_mode_settings`.
 -   **Schema Synchronization:** Resolved critical "relation does not exist" errors by creating all tables from the Drizzle schema definition.

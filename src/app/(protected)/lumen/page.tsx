@@ -23,6 +23,16 @@ export default function LumenAIPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { userProfile } = useAuth();
 
+  // Prebuilt financial prompts
+  const quickPrompts = [
+    { id: 1, text: "How can I improve my cash flow?", icon: "💰" },
+    { id: 2, text: "Show my top clients this quarter", icon: "👥" },
+    { id: 3, text: "What's my revenue trend?", icon: "📈" },
+    { id: 4, text: "Which invoices are overdue?", icon: "⚠️" },
+    { id: 5, text: "Analyze my expenses this month", icon: "📊" },
+    { id: 6, text: "What's my profit margin?", icon: "💹" },
+  ];
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
@@ -95,6 +105,18 @@ What would you like to know or do today?`,
         response = "Managing payments and receipts:\n\n**Payments:**\n• Track all incoming payments\n• Link payments to invoices\n• Support multiple payment methods\n• Generate payment reports\n\n**Receipts:**\n• Upload and scan expense receipts\n• OCR technology extracts data automatically\n• Organize by category and vendor\n• Track business expenses for tax time\n\nCheck the **Payments** and **Receipts** sections in your sidebar!";
       } else if (lowerInput.includes('calendar') || lowerInput.includes('booking') || lowerInput.includes('schedule')) {
         response = "LumenR's scheduling features:\n\n**Calendar:**\n• Sync with Google Calendar or Outlook\n• View all appointments in one place\n• Schedule meetings with clients\n\n**Bookings:**\n• Manage client appointments\n• Set availability and duration\n• Send automatic reminders\n• Track booking history\n\nNavigate to **Calendar** or **Bookings** to manage your schedule!";
+      } else if (lowerInput.includes('cash flow') || lowerInput.includes('cashflow')) {
+        response = "Here are strategies to improve your cash flow:\n\n**Short-term actions:**\n• Review and follow up on overdue invoices (check Invoices page)\n• Offer early payment discounts to encourage faster payments\n• Set shorter payment terms (e.g., Net 15 instead of Net 30)\n\n**Medium-term strategies:**\n• Require deposits or partial upfront payments\n• Automate payment reminders for clients\n• Negotiate better terms with your suppliers\n\n**Long-term improvements:**\n• Build a cash reserve (aim for 3-6 months expenses)\n• Diversify your client base\n• Consider recurring revenue models\n\nVisit **Financial Insights** to monitor your cash flow trends!";
+      } else if (lowerInput.includes('top client') || lowerInput.includes('best client')) {
+        response = "To view your top clients:\n\n1. Navigate to **Financial Insights** in the sidebar\n2. Check the \"Top Clients by Revenue\" chart\n3. View detailed client revenue breakdowns\n\nYour top clients are typically those who:\n• Generate the most revenue\n• Pay invoices on time\n• Request recurring services\n• Refer new business\n\nConsider nurturing these relationships with:\n• Exclusive offers or loyalty discounts\n• Priority support\n• Regular check-ins\n• Thank you gestures";
+      } else if (lowerInput.includes('revenue trend') || lowerInput.includes('revenue growth')) {
+        response = "Track your revenue trends:\n\n**In LumenR:**\n• Visit **Financial Insights** for revenue charts\n• View monthly/quarterly comparisons\n• See revenue by client or service\n• Export data for detailed analysis\n\n**Current performance indicators:**\n• Month-over-month growth rate\n• Year-over-year comparison\n• Average invoice value\n• Revenue per client\n\n**What to look for:**\n✅ Steady upward trend = healthy growth\n⚠️ Seasonal fluctuations = plan for slow periods\n🔴 Declining trend = time to adjust strategy\n\nCheck your dashboard for real-time insights!";
+      } else if (lowerInput.includes('overdue') || lowerInput.includes('late payment')) {
+        response = "Managing overdue invoices:\n\n**View overdue invoices:**\n1. Go to **Invoices** page\n2. Click the **Overdue** tab\n3. See all invoices past their due date\n\n**Follow-up best practices:**\n• Send friendly reminder emails (automated in Settings)\n• Call clients for large amounts\n• Offer payment plans if needed\n• Consider late fees for persistent issues\n\n**Prevention strategies:**\n• Set clear payment terms upfront\n• Send invoices immediately after service\n• Accept multiple payment methods\n• Follow up before due date\n\nHead to the Invoices page to take action!";
+      } else if (lowerInput.includes('expense') || lowerInput.includes('spending')) {
+        response = "Analyze your expenses:\n\n**In LumenR:**\n• Visit **Receipts** to view all expenses\n• Check **Financial Insights** for expense breakdown\n• Filter by category, vendor, or date\n• Export for tax preparation\n\n**Expense categories tracked:**\n• Supplies and materials\n• Software and subscriptions\n• Travel and transportation\n• Professional services\n• Marketing and advertising\n• Office expenses\n\n**Tips to reduce expenses:**\n• Review subscriptions monthly\n• Negotiate with vendors\n• Buy in bulk when possible\n• Use tax deductions\n\nVisit the Receipts page to upload and categorize expenses!";
+      } else if (lowerInput.includes('profit') || lowerInput.includes('margin')) {
+        response = "Understanding your profit margins:\n\n**Profit Margin Formula:**\nProfit Margin = (Revenue - Expenses) / Revenue × 100\n\n**In LumenR:**\n• View **Financial Insights** for profit calculations\n• Track revenue from Invoices (paid status)\n• Monitor expenses in Receipts\n• Calculate net profit margins\n\n**Healthy profit margins:**\n• Service businesses: 15-30%\n• Consulting: 20-40%\n• Premium services: 30-50%\n\n**Improve your margins:**\n• Increase pricing strategically\n• Reduce operational costs\n• Focus on high-margin services\n• Improve efficiency\n\nCheck your dashboard for current profit metrics!";
       } else if (lowerInput.includes('insight') || lowerInput.includes('analytic') || lowerInput.includes('report')) {
         response = "Get powerful insights with LumenR:\n\n• Revenue trends and forecasts\n• Client growth analysis\n• Invoice payment tracking\n• Top clients by revenue\n• Monthly/quarterly comparisons\n• Expense categorization\n• Profit margins\n\nVisit **Financial Insights** to see your business performance dashboard!";
       } else if (lowerInput.includes('contract')) {
@@ -153,6 +175,34 @@ Try asking me something specific like "How do I create an invoice?" or "Tell me 
       </div>
 
       <Card className="bg-card border-border backdrop-blur-xl overflow-hidden shadow-2xl rounded-3xl">
+        {/* Quick Prompts Section */}
+        <div className="p-4 border-b border-border bg-muted/30">
+          <p className="text-xs font-semibold text-muted-foreground mb-3 uppercase tracking-wide">💡 Quick Financial Insights</p>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+            {quickPrompts.map((prompt) => (
+              <Button
+                key={prompt.id}
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setInput(prompt.text);
+                  setTimeout(() => {
+                    const form = document.querySelector('form');
+                    if (form) {
+                      form.requestSubmit();
+                    }
+                  }, 100);
+                }}
+                className="justify-start text-left h-auto py-2 px-3 hover:bg-purple-500/10 hover:border-purple-500/50"
+                disabled={isProcessing}
+              >
+                <span className="mr-2">{prompt.icon}</span>
+                <span className="text-xs line-clamp-2">{prompt.text}</span>
+              </Button>
+            ))}
+          </div>
+        </div>
+
         {/* Messages Area */}
         <div className="h-[600px] overflow-y-auto p-6 space-y-4">
           <AnimatePresence>

@@ -351,6 +351,27 @@ export default function InvoicesPage() {
     .filter(inv => inv.status === 'paid')
     .reduce((sum, inv) => sum + (inv.total || 0), 0)
 
+  // Calculate month-over-month performance
+  const now = new Date()
+  const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1)
+  const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+  const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59)
+
+  const currentMonthInvoices = invoices.filter(inv => 
+    new Date(inv.createdAt) >= currentMonthStart
+  )
+  const lastMonthInvoices = invoices.filter(inv => {
+    const invDate = new Date(inv.createdAt)
+    return invDate >= lastMonthStart && invDate <= lastMonthEnd
+  })
+
+  const currentMonthCount = currentMonthInvoices.length
+  const lastMonthCount = lastMonthInvoices.length
+  const invoiceChange = lastMonthCount > 0 
+    ? ((currentMonthCount - lastMonthCount) / lastMonthCount * 100).toFixed(1)
+    : '0.0'
+  const invoiceChangePositive = parseFloat(invoiceChange) >= 0
+
   const totals = calculateTotals(lineItems, newInvoice.clientId)
   const editTotals = editingInvoice ? calculateTotals(editLineItems, editingInvoice.clientId.toString()) : { subtotal: 0, tax: 0, total: 0 }
 
@@ -541,6 +562,35 @@ export default function InvoicesPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Performance Summary Banner */}
+      {invoices.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex items-center justify-between p-4 rounded-lg bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-purple-500/20"
+        >
+          <div className="flex items-center gap-3">
+            <div className={`p-2 rounded-full ${invoiceChangePositive ? 'bg-green-500/10' : 'bg-red-500/10'}`}>
+              <FileText className={`h-5 w-5 ${invoiceChangePositive ? 'text-green-500' : 'text-red-500'}`} />
+            </div>
+            <div>
+              <p className="text-sm font-semibold">
+                {currentMonthCount} {currentMonthCount === 1 ? 'invoice' : 'invoices'} this month
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {lastMonthCount} last month
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className={`text-2xl font-bold ${invoiceChangePositive ? 'text-green-500' : 'text-red-500'}`}>
+              {invoiceChangePositive ? '+' : ''}{invoiceChange}%
+            </span>
+            <span className="text-xs text-muted-foreground">vs last month</span>
+          </div>
+        </motion.div>
+      )}
 
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
         <div className="relative flex-1 w-full">
