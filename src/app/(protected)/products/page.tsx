@@ -25,16 +25,33 @@ export default function ProductsPage() {
   const fetchProducts = async () => {
     try {
       const token = localStorage.getItem('bearer_token');
+      if (!token) {
+        toast.error('Please log in to view products');
+        setLoading(false);
+        return;
+      }
+
       const response = await fetch('/api/lumenr/products', {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        setProducts(data.products || []);
+      if (!response.ok) {
+        if (response.status === 401) {
+          toast.error('Session expired. Please log in again.');
+        } else {
+          toast.error('Failed to load products');
+        }
+        setProducts([]);
+        setLoading(false);
+        return;
       }
+
+      const data = await response.json();
+      setProducts(data.products || []);
     } catch (error: any) {
+      console.error('Error fetching products:', error);
       toast.error(error.message || 'Failed to load products');
+      setProducts([]);
     } finally {
       setLoading(false);
     }

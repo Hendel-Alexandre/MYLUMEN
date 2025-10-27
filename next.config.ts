@@ -14,6 +14,10 @@ const nextConfig: NextConfig = {
       exclude: ['error', 'warn'],
     } : false,
   },
+  
+  // Production optimizations
+  swcMinify: true,
+  poweredByHeader: false,
 
   // Image optimization
   images: {

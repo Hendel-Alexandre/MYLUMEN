@@ -4,10 +4,12 @@ import { invoices, clients } from '@/db/schema';
 import { eq, and, desc } from 'drizzle-orm';
 import { getAuthUser } from '@/lib/auth-api';
 import { jsonOk, jsonError } from '@/lib/api-utils';
+import { logApiTiming } from '@/lib/performance-monitor';
 
 const VALID_STATUSES = ['unpaid', 'partially_paid', 'paid', 'cancelled', 'overdue'];
 
 export async function GET(request: NextRequest) {
+  const startTime = performance.now();
   try {
     // Check database configuration first
     if (!isDatabaseConfigured()) {
@@ -78,6 +80,9 @@ export async function GET(request: NextRequest) {
       tax: parseFloat(invoice.tax as any) || 0,
       total: parseFloat(invoice.total as any) || 0
     }));
+
+    const duration = performance.now() - startTime;
+    logApiTiming('/api/lumenr/invoices GET', duration);
 
     return jsonOk(formattedResults);
   } catch (error) {
