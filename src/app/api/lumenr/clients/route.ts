@@ -4,8 +4,10 @@ import { clients } from '@/db/schema';
 import { eq, and, desc, or, like } from 'drizzle-orm';
 import { getAuthUser } from '@/lib/auth-api';
 import { jsonOk, jsonError } from '@/lib/api-utils';
+import { PerformanceMonitor, logApiTiming } from '@/lib/performance-monitor';
 
 export async function GET(request: NextRequest) {
+  const startTime = performance.now();
   try {
     // Check database configuration first
     if (!isDatabaseConfigured()) {
@@ -71,7 +73,9 @@ export async function GET(request: NextRequest) {
 
     const results = await query.limit(limit).offset(offset);
     
-    console.log(`[DEBUG /api/lumenr/clients GET] Returning ${results.length} clients for user ${userId}`);
+    const duration = performance.now() - startTime;
+    logApiTiming('/api/lumenr/clients GET', duration);
+    console.log(`[DEBUG] Returning ${results.length} clients for user ${userId}`);
 
     return jsonOk(results);
   } catch (error) {
