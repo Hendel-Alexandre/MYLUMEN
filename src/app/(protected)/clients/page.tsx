@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useClients, useCreateClient, useUpdateClient, useDeleteClient } from '@/hooks/useClients';
 import { 
   Plus, Search, Users, MoreHorizontal, Edit, Trash2, Mail, Phone, 
   Building2, FileText, Receipt, FileSignature, Globe, Upload, 
@@ -53,8 +54,11 @@ const COUNTRIES = [
 ];
 
 export default function ClientsPage() {
-  const [clients, setClients] = useState<Client[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: clients = [], isLoading: loading } = useClients();
+  const createClientMutation = useCreateClient();
+  const updateClientMutation = useUpdateClient();
+  const deleteClientMutation = useDeleteClient();
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -78,95 +82,27 @@ export default function ClientsPage() {
     autoCalculateTax: false
   });
 
-  const fetchClients = async () => {
-    try {
-      const token = localStorage.getItem('bearer_token');
-      const response = await fetch('/api/lumenr/clients', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      
-      if (!response.ok) throw new Error('Failed to fetch clients');
-      
-      const result = await response.json();
-      const data = result.success ? result.data : result;
-      setClients(Array.isArray(data) ? data : []);
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to fetch clients');
-      setClients([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const createClient = async (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      const token = localStorage.getItem('bearer_token');
-      const response = await fetch('/api/lumenr/clients', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(newClient)
-      });
-
-      if (!response.ok) throw new Error('Failed to create client');
-
-      toast.success('Client created successfully');
-      setNewClient({
-        name: '', email: '', phone: '', company: '', taxId: '',
-        address: '', city: '', province: '', country: '', taxRate: '',
-        autoCalculateTax: false
-      });
-      setIsDialogOpen(false);
-      fetchClients();
-    } catch (error: any) {
-      toast.error(error.message);
-    }
+    await createClientMutation.mutateAsync(newClient);
+    setNewClient({
+      name: '', email: '', phone: '', company: '', taxId: '',
+      address: '', city: '', province: '', country: '', taxRate: '',
+      autoCalculateTax: false
+    });
+    setIsDialogOpen(false);
   };
 
   const updateClient = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingClient) return;
-
-    try {
-      const token = localStorage.getItem('bearer_token');
-      const response = await fetch(`/api/lumenr/clients?id=${editingClient.id}`, {
-        method: 'PUT',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(editingClient)
-      });
-
-      if (!response.ok) throw new Error('Failed to update client');
-
-      toast.success('Client updated successfully');
-      setIsEditDialogOpen(false);
-      setEditingClient(null);
-      fetchClients();
-    } catch (error: any) {
-      toast.error(error.message);
-    }
+    await updateClientMutation.mutateAsync({ id: editingClient.id, data: editingClient });
+    setIsEditDialogOpen(false);
+    setEditingClient(null);
   };
 
   const deleteClient = async (clientId: number) => {
-    try {
-      const token = localStorage.getItem('bearer_token');
-      const response = await fetch(`/api/lumenr/clients?id=${clientId}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-
-      if (!response.ok) throw new Error('Failed to delete client');
-
-      toast.success('Client deleted successfully');
-      fetchClients();
-    } catch (error: any) {
-      toast.error(error.message);
-    }
+    await deleteClientMutation.mutateAsync(clientId);
   };
 
   const handleImport = async () => {
@@ -216,7 +152,6 @@ export default function ClientsPage() {
       if (apiResult.success) {
         setImportResult(apiResult.data);
         toast.success(apiResult.data.message);
-        fetchClients();
         if (apiResult.data.failed === 0) {
           setTimeout(() => {
             setIsImportDialogOpen(false);
@@ -237,9 +172,6 @@ export default function ClientsPage() {
     }
   };
 
-  useEffect(() => {
-    fetchClients();
-  }, []);
 
   useEffect(() => {
     if (newClient.autoCalculateTax) {
@@ -501,13 +433,8 @@ export default function ClientsPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredClients.map((client) => (
-          <motion.div
-            key={client.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <Card className="hover:shadow-lg transition-shadow">
+          <div key={client.id} className="animate-fade-in">
+            <Card className="hover:shadow-lg transition-all duration-200">
               <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
                 <div className="space-y-1 flex-1 min-w-0">
                   <CardTitle className="text-base font-semibold truncate">
@@ -575,7 +502,7 @@ export default function ClientsPage() {
                 </div>
               </CardContent>
             </Card>
-          </motion.div>
+          </div>
         ))}
       </div>
 

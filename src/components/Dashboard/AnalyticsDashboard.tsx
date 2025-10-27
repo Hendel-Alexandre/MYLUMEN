@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { useAnalytics } from '@/hooks/useAnalytics'
 import { 
   TrendingUp, TrendingDown, Clock, CheckCircle2, Target,
   Calendar, Users, Zap, AlertCircle, Award, ArrowRight,
@@ -74,36 +74,13 @@ interface AnalyticsData {
 
 export function AnalyticsDashboard() {
   const [timeRange, setTimeRange] = useState<'week' | 'month' | 'year'>('week')
-  const [loading, setLoading] = useState(true)
-  const [data, setData] = useState<AnalyticsData | null>(null)
-
+  const { data, isLoading: loading, error } = useAnalytics()
+  
   useEffect(() => {
-    fetchAnalytics()
-  }, [])
-
-  const fetchAnalytics = async () => {
-    try {
-      setLoading(true)
-      const token = localStorage.getItem('bearer_token')
-      const response = await fetch('/api/lumenr/analytics', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
-
-      const result = await response.json()
-      if (result.success) {
-        setData(result.data)
-      } else {
-        toast.error('Failed to load analytics')
-      }
-    } catch (error) {
-      console.error('Analytics fetch error:', error)
+    if (error) {
       toast.error('Failed to load analytics')
-    } finally {
-      setLoading(false)
     }
-  }
+  }, [error])
 
   const getTrendIcon = (value: number) => {
     return value >= 0 ? (
