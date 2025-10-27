@@ -1,5 +1,6 @@
 'use client';
 
+import dynamic from 'next/dynamic'
 import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import { Plus, FileText, Users, Receipt, TrendingUp } from 'lucide-react'
@@ -8,9 +9,25 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 import { LumenAssistant } from '@/components/AI/LumenAssistant'
-import { InteractiveBanners } from '@/components/Dashboard/InteractiveBanners'
-import { AnalyticsDashboard } from '@/components/Dashboard/AnalyticsDashboard'
 import { TrialBanner } from '@/components/ui/feature-lock'
+import { BannersSkeleton } from '@/components/Dashboard/BannersSkeleton'
+import { AnalyticsSkeleton } from '@/components/Dashboard/AnalyticsSkeleton'
+
+const InteractiveBanners = dynamic(
+  () => import('@/components/Dashboard/InteractiveBanners').then(mod => ({ default: mod.InteractiveBanners })),
+  {
+    loading: () => <BannersSkeleton />,
+    ssr: false
+  }
+)
+
+const AnalyticsDashboard = dynamic(
+  () => import('@/components/Dashboard/AnalyticsDashboard').then(mod => ({ default: mod.AnalyticsDashboard })),
+  {
+    loading: () => <AnalyticsSkeleton />,
+    ssr: false
+  }
+)
 
 const containerVariants = {
   hidden: { opacity: 0 },

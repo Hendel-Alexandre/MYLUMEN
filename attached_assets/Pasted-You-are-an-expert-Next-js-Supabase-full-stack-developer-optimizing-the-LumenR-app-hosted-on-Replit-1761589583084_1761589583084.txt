@@ -1,0 +1,51 @@
+You are an expert Next.js + Supabase full-stack developer optimizing the LumenR app hosted on Replit.  
+Your goal: fix severe performance and loading issues across login, dashboard, and page navigation.
+
+Tasks:
+1. ⚙️ Optimize .env loading
+   - Ensure environment variables are loaded once at startup, not per request.
+   - Use process.env (not import.meta.env).
+   - Cache Supabase URL and key in a global config.
+
+2. ⚡ Frontend Optimization
+   - Enable code splitting using next/dynamic for heavy components (charts, forms, modals).
+   - Implement lazy loading and Suspense for large dashboard sections.
+   - Wrap all data fetching with React Query for caching + optimistic UI updates.
+   - Add skeleton loaders and fallback components.
+   - Audit bundle size: run `next build && next analyze`, and remove heavy or unused dependencies.
+   - Use static site generation (SSG) or incremental static regeneration (ISR) for public pages (like Pricing, Landing).
+   - Debounce or throttle frequent UI-triggered API calls.
+
+3. 🧠 Backend Performance
+   - Fix malformed JSON responses in API routes.
+   - Use a single Supabase client instance via a shared lib (avoid creating a new one in each request).
+   - Add console.time logs to measure each route’s performance.
+   - Optimize all database queries (add indexes to client_id, invoice_id, user_id).
+   - Implement connection pooling (e.g., PgBouncer for PostgreSQL).
+   - Cache frequent queries using Supabase Edge Functions or Redis (if available).
+   - Verify Row-Level Security (RLS) doesn’t slow down queries unnecessarily.
+
+4. 📡 Third-Party Services
+   - Optimize Google OAuth and Stripe calls: use async background jobs for syncing and webhooks.
+   - Reuse access tokens instead of reauthenticating each time.
+   - Lazy load external integrations (calendar, payments) after main dashboard render.
+
+5. 🧩 Global Improvements
+   - Add `next/script strategy="lazyOnload"` for analytics or tracking scripts.
+   - Enable compression for static assets (images, JSON).
+   - Add caching headers (ETag, Cache-Control) to /public assets.
+   - Enable image optimization with Next/Image.
+   - Move large icons, fonts, and libraries (like chart.js) to dynamic imports.
+
+6. 🔍 Monitoring & Profiling
+   - Integrate Sentry or Logtail for performance tracing.
+   - Use React Profiler and browser Network tab to confirm reductions in render time.
+   - Log total page load time (TTFB, FCP, LCP) for key routes like /login, /dashboard.
+
+Expected outcome:
+✅ Pages load in <1s after optimization.
+✅ Dashboard interactions (clicks, modals, forms) are instantaneous.
+✅ All API calls return valid JSON in under 200ms.
+✅ Authentication and navigation become smooth.
+
+Make all improvements directly in code where possible. Provide a summary of what was changed after completion.

@@ -4,13 +4,19 @@ import { clients } from '@/db/schema';
 import { eq, like, or, desc, and } from 'drizzle-orm';
 import { getAuthUser } from '@/lib/auth-api';
 import { jsonOk, jsonError } from '@/lib/api-utils';
+import { PerformanceMonitor } from '@/lib/performance';
 
 export async function GET(request: NextRequest) {
+  const perfMon = new PerformanceMonitor('GET /api/core/clients');
+  
   try {
     const { userId, error } = await getAuthUser(request);
     if (error || !userId) {
+      perfMon.end();
       return jsonError('Authentication required', 401);
     }
+    
+    perfMon.checkpoint('Auth completed');
 
     const searchParams = request.nextUrl.searchParams;
     const id = searchParams.get('id');
@@ -18,6 +24,7 @@ export async function GET(request: NextRequest) {
     // Single record fetch by ID
     if (id) {
       if (!id || isNaN(parseInt(id))) {
+        perfMon.end();
         return jsonError('Valid ID is required', 400);
       }
 
@@ -30,9 +37,11 @@ export async function GET(request: NextRequest) {
         .limit(1);
 
       if (client.length === 0) {
+        perfMon.end();
         return jsonError('Client not found', 404);
       }
 
+      perfMon.end();
       return jsonOk(client[0]);
     }
 
@@ -62,9 +71,14 @@ export async function GET(request: NextRequest) {
     }
 
     const results = await query.limit(limit).offset(offset);
-
-    return jsonOk(results);
+    
+    perfMon.checkpoint('Query executed');
+    
+    const response = jsonOk(results);
+    perfMon.end();
+    return response;
   } catch (error) {
+    perfMon.end();
     console.error('GET error:', error);
     return jsonError('Internal server error: ' + (error as Error).message, 500);
   }

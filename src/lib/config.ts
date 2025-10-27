@@ -1,14 +1,17 @@
-// Environment configuration helper
-export const ENV = {
+// Cached environment variables loaded once at startup
+const getEnv = () => ({
   NODE_ENV: process.env.NODE_ENV || 'development',
   
   // Database
   DATABASE_URL: process.env.DATABASE_URL || 'file:./local.db',
   DATABASE_AUTH_TOKEN: process.env.DATABASE_AUTH_TOKEN || '',
   
-  // Supabase
+  // Supabase (client-side safe)
   SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL || '',
   SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
+  
+  // Supabase (server-side only)
+  SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY || '',
   
   // API
   API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000',
@@ -20,9 +23,15 @@ export const ENV = {
   
   // External Services
   STRIPE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '',
+  STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY || '',
   
   // Sentry
   SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN || '',
+});
+
+// Cache environment variables once at module load
+export const ENV = {
+  ...getEnv(),
   
   // Helpers
   isDevelopment: () => ENV.NODE_ENV === 'development',

@@ -3,21 +3,28 @@ import { clients, invoices, receipts, payments, bookings } from '@/db/schema';
 import { eq, and, gte, sql } from 'drizzle-orm';
 import { getAuthUser } from '@/lib/auth-api';
 import { jsonOk, jsonError } from '@/lib/api-utils';
+import { PerformanceMonitor } from '@/lib/performance';
 
 export async function GET(request: Request) {
+  const perfMon = new PerformanceMonitor('GET /api/core/analytics');
+  
   try {
     // Check database configuration first
     if (!isDatabaseConfigured()) {
+      perfMon.end();
       return jsonError(
         `Database not configured: ${getDatabaseError()}`,
         503
       );
     }
 
+    perfMon.checkpoint('DB config checked');
+
     const authHeader = request.headers.get('Authorization');
     const token = authHeader?.replace('Bearer ', '');
 
     if (!token) {
+      perfMon.end();
       return jsonError('Authentication required', 401);
     }
 
@@ -99,12 +106,14 @@ export async function GET(request: Request) {
     const currentBookingCount = currentMonthBookings[0]?.count || 0;
     const lastBookingCount = lastMonthBookings[0]?.count || 0;
 
+    perfMon.checkpoint('DB queries completed');
+
     const calculateChange = (current: number, last: number) => {
       if (last === 0) return current > 0 ? 100 : 0;
       return ((current - last) / last) * 100;
     };
 
-    return jsonOk({
+    const response = jsonOk({
       revenue: {
         current: currentRevenue,
         last: lastRevenue,
@@ -130,7 +139,11 @@ export async function GET(request: Request) {
         total: totalClients[0]?.count || 0
       }
     });
+    
+    perfMon.end();
+    return response;
   } catch (error: any) {
+    perfMon.end();
     console.error('Analytics API Error:', error);
     return jsonError('Internal server error: ' + error.message, 500);
   }

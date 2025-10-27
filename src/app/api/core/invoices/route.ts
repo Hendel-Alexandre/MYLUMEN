@@ -4,21 +4,28 @@ import { invoices, clients } from '@/db/schema';
 import { eq, and, desc } from 'drizzle-orm';
 import { getAuthUser } from '@/lib/auth-api';
 import { jsonOk, jsonError } from '@/lib/api-utils';
+import { PerformanceMonitor } from '@/lib/performance';
 
 const VALID_STATUSES = ['unpaid', 'partially_paid', 'paid', 'cancelled', 'overdue'];
 
 export async function GET(request: NextRequest) {
+  const perfMon = new PerformanceMonitor('GET /api/core/invoices');
+  
   try {
     const { userId, error } = await getAuthUser(request);
     if (error || !userId) {
+      perfMon.end();
       return jsonError('Authentication required', 401);
     }
+    
+    perfMon.checkpoint('Auth completed');
 
     const searchParams = request.nextUrl.searchParams;
     const id = searchParams.get('id');
 
     if (id) {
       if (!id || isNaN(parseInt(id))) {
+        perfMon.end();
         return jsonError('Valid ID is required', 400);
       }
 
@@ -29,9 +36,11 @@ export async function GET(request: NextRequest) {
         .limit(1);
 
       if (invoice.length === 0) {
+        perfMon.end();
         return jsonError('Invoice not found', 404);
       }
 
+      perfMon.end();
       return jsonOk(invoice[0]);
     }
 
@@ -49,6 +58,7 @@ export async function GET(request: NextRequest) {
 
     if (status) {
       if (!VALID_STATUSES.includes(status)) {
+        perfMon.end();
         return jsonError('Invalid status value', 400);
       }
 
@@ -62,9 +72,14 @@ export async function GET(request: NextRequest) {
     }
 
     const results = await query;
-
-    return jsonOk(results);
+    
+    perfMon.checkpoint('Query executed');
+    
+    const response = jsonOk(results);
+    perfMon.end();
+    return response;
   } catch (error) {
+    perfMon.end();
     console.error('GET error:', error);
     return jsonError('Internal server error: ' + (error as Error).message, 500);
   }

@@ -111,12 +111,13 @@ export function AppSidebar() {
         {/* Logo Section */}
         <div className="p-6 border-b border-border/50">
           <div className="flex items-center justify-center">
-            <img 
+            <Image 
               src="/lumenr-logo.png" 
               alt="LumenR" 
-              className={`transition-all duration-300 ${
-                isCollapsed ? 'w-12 h-12' : 'w-20 h-20'
-              }`}
+              width={isCollapsed ? 48 : 80}
+              height={isCollapsed ? 48 : 80}
+              className="transition-all duration-300"
+              priority
             />
           </div>
         </div>
