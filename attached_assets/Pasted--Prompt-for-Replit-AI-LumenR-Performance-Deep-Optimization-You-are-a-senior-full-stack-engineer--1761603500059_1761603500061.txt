@@ -1,0 +1,170 @@
+⚙️ Prompt for Replit AI – LumenR Performance Deep Optimization
+You are a senior full-stack engineer and Next.js performance specialist. 
+Your task is to analyze and fix severe performance issues across the LumenR project 
+(https://github.com/Hendel-Alexandre/MYLUMEN.git) running on Replit.
+
+Symptoms:
+- Pages (login, register, dashboard, invoices, clients, etc.) load very slowly.
+- Buttons require multiple clicks before responding.
+- Dashboard data takes too long to appear.
+- Supabase/DB operations are inconsistent or timeout.
+
+Your goal is to make the app load and respond instantly. 
+Target: sub-1.5s page loads and sub-200ms API responses.
+
+---
+
+### 🔍 Step 1. Diagnose Bottlenecks
+1. Inspect all pages and routes for:
+   - Blocking or synchronous API calls
+   - Missing async/await handling
+   - Multiple redundant Supabase client creations per request
+   - Unnecessary server revalidation
+2. Log request timings (`console.time` / `performance.now`) around each API handler.
+3. Analyze bundle size via `next build && next analyze`.
+4. Identify heavy dependencies and unused imports.
+5. Check for long network round-trips (especially Supabase/Google OAuth).
+
+---
+
+### ⚙️ Step 2. Environment & Build Configuration
+- Replace all `import.meta.env` calls with `process.env` in API routes.
+- Cache environment variables in a global config (e.g., `lib/env.ts`).
+- Add the following in `.env.production`:
+
+
+NODE_ENV=production
+NEXT_TELEMETRY_DISABLED=1
+NEXT_PUBLIC_SUPABASE_URL=<url>
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<key>
+
+- Disable source maps and telemetry in production build.
+- Ensure the app runs with:
+
+
+npm run build && npm run start
+
+not `next dev`.
+
+---
+
+### ⚡ Step 3. Frontend Rendering Optimization
+1. **Dynamic Imports & Code Splitting**
+ - Use `next/dynamic` for heavy components (charts, modals, tables, editors).
+ - Lazy-load dashboards, graphs, and admin widgets.
+
+2. **React Query (Caching)**
+ - Wrap the app in a QueryProvider.
+ - Convert all data fetching (clients, invoices, dashboard stats) to TanStack Query.
+ - Enable caching and optimistic UI updates.
+
+3. **UI Responsiveness**
+ - Add skeletons/loading placeholders.
+ - Wrap heavy components in `<Suspense>`.
+ - Debounce user inputs and throttle real-time updates.
+
+4. **State Management**
+ - Replace global Contexts that re-render the entire app with local state or Zustand.
+ - Memoize repeated UI components.
+ - Reduce prop drilling.
+
+5. **Static Rendering**
+ - Convert public pages (landing, pricing, about) to **SSG/ISR**.
+ - Add:
+   ```ts
+   export const revalidate = 60
+   ```
+
+6. **Compression**
+ - Enable Brotli/gzip for static assets and JSON.
+ - Use `<Image>` with `unoptimized={true}` on Replit to skip slow image optimization.
+
+---
+
+### 🧠 Step 4. Backend Optimization
+1. **API Routes**
+ - Verify all routes in `/api/lumenr/**` return JSON via:
+   ```ts
+   return NextResponse.json(data, { status: 200 });
+   ```
+ - Avoid returning `Response.text()` or malformed JSON.
+ - Use `Promise.all` for parallel fetches.
+
+2. **Supabase Client**
+ - Create a shared instance in `/lib/supabaseClient.ts`.
+ - Import it everywhere instead of creating new clients.
+ - Reuse connections; avoid `createClient` per request.
+
+3. **Database Performance**
+ - Add indexes to `user_id`, `client_id`, `invoice_id`, `created_at`.
+ - Minimize N+1 queries.
+ - Implement pagination on lists (clients, invoices, quotes).
+
+4. **Connection Pooling**
+ - If using PostgreSQL, connect through PgBouncer or Supabase connection pooling.
+ - Keep connections alive between requests.
+
+5. **Caching**
+ - Cache read-heavy endpoints (e.g., dashboard stats, reports) with 30s TTL.
+ - Use Supabase Edge Functions or Redis if possible.
+
+---
+
+### 📡 Step 5. Third-Party Integrations
+1. **OAuth / Google Login**
+ - Cache tokens and reuse instead of reauthenticating per request.
+ - Defer external API calls until after main UI loads.
+2. **Stripe**
+ - Move all heavy Stripe calls (customer sync, invoice checks) to background jobs or webhook handlers.
+3. **Calendar Sync**
+ - Fetch calendar data asynchronously after dashboard render.
+
+---
+
+### 🧱 Step 6. Replit-Specific Optimization
+- Enable “Always On” to prevent cold starts.
+- Use `NODE_ENV=production` to skip dev recompiles.
+- Cache `.next` and `node_modules` directories.
+- Serve static assets from `/public` or an external CDN.
+- Disable Hot Reload during production demo mode.
+
+---
+
+### 🔍 Step 7. Monitoring & Profiling
+- Add `console.time()` in:
+- `/api/auth`
+- `/api/lumenr/dashboard`
+- `/api/lumenr/invoices`
+- Log slow queries (>300ms).
+- Install and configure **Sentry** for tracing.
+
+---
+
+### ✅ Step 8. Deliverables
+After optimization:
+- Dashboard loads in under 1.5 seconds.
+- Login/Register respond within 2 seconds.
+- All API routes return valid JSON under 300ms.
+- No “Unexpected end of JSON” or network timeout errors.
+- Memory usage under 512 MB; no repeated rebuilds.
+
+Provide a final summary with:
+1. List of files modified.
+2. What caused the slowness (frontend, backend, or hosting).
+3. Before/after timing results.
+
+---
+
+### 🚀 Execute
+Now scan the entire project and:
+1. Detect every performance bottleneck.
+2. Apply all the fixes above.
+3. Optimize the build for production.
+4. Report findings clearly at the end.
+
+✅ Tips:
+
+You can paste this entire block into Replit’s “AI Actions” prompt box or into your .replit AI chat panel — it’ll know to run the audit and make changes in sequence.
+Once it’s done, you can run:
+
+npm run analyze
