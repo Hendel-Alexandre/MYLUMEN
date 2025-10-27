@@ -47,6 +47,15 @@ Preferred communication style: Simple, everyday language.
 -   **Database Schema:** Tables for clients, products, services, quotes, invoices, contracts, receipts, payments, business profiles, bookings, and user mode settings.
 -   **Environment Configuration:** Utilizes environment variables for sensitive data.
 
+### Performance Optimizations
+
+-   **Environment Variable Caching:** Centralized configuration (`src/lib/config.ts`) caches environment variables on first access; all Supabase and Stripe clients consume cached values instead of accessing `process.env` directly.
+-   **Code Splitting:** Heavy dashboard components (AnalyticsDashboard, InteractiveBanners) are lazy-loaded using `next/dynamic` with dedicated skeleton loaders for improved perceived performance.
+-   **Performance Monitoring:** `PerformanceMonitor` utility (`src/lib/performance.ts`) integrated into critical API routes (analytics, clients, invoices) with comprehensive logging on all code paths including auth failures and validation errors.
+-   **Image Optimization:** Next.js Image component used for all images with explicit dimensions, priority flags, and modern formats (AVIF, WebP).
+-   **Static Asset Caching:** Long-lived cache headers (1 year) configured for static assets, Next.js build outputs, and fonts.
+-   **Compression:** Gzip compression enabled for all responses in Next.js configuration.
+
 ## External Dependencies
 
 -   **Authentication & Database:** Supabase (PostgreSQL, Supabase Auth).
