@@ -79,10 +79,10 @@ export default function DashboardPage() {
           <TrialBanner />
         </motion.div>
 
-        {/* Interactive Analytics Banners - Temporarily disabled due to database setup */}
-        {/* <motion.div variants={itemVariants}>
+        {/* Interactive Analytics Banners */}
+        <motion.div variants={itemVariants}>
           <InteractiveBanners />
-        </motion.div> */}
+        </motion.div>
 
         {/* Quick Actions */}
         <motion.div variants={itemVariants}>
