@@ -16,7 +16,6 @@ const nextConfig: NextConfig = {
   },
   
   // Production optimizations
-  swcMinify: true,
   poweredByHeader: false,
 
   // Image optimization
