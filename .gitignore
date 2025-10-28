@@ -45,3 +45,23 @@ next-env.d.ts
 *.njsproj
 *.sln
 *.sw?
+
+# Replit
+.replit
+replit.nix
+.config/
+.upm/
+.cache/
+
+# Build artifacts
+.next/cache
+dist/
+build/
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
