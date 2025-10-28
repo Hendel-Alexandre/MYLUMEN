@@ -33,7 +33,7 @@ export default function IndexPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-white text-gray-900 light">
+    <div className="min-h-screen bg-white text-gray-900" data-theme="light">
       {/* Navigation */}
       <nav className="border-b border-gray-200 bg-white/80 backdrop-blur-xl sticky top-0 z-50 shadow-sm">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
