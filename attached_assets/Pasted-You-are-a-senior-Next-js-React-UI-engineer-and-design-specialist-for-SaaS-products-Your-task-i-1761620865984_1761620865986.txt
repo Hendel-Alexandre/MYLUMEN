@@ -1,0 +1,104 @@
+You are a senior Next.js + React UI engineer and design specialist for SaaS products.  
+Your task is to update and visually improve the **LumenR app landing page and dashboard preview** for a more professional SaaS look.
+
+🎯 GOAL:
+Transform the landing page and dashboard section to match a polished, modern SaaS brand while ensuring perfect layout alignment, responsiveness, and visual hierarchy.
+
+---
+
+### 🔧 TASK LIST
+
+#### 🧩 1. Landing Page Content Fixes
+- **Remove** the “Try Lumen AI” button or banner completely.
+- **Remove** the “Chat with Lumen AI” section from the hero area.
+- **Ensure the navigation bar** (Features, Solutions, Pricing) is properly **centered** both horizontally and vertically in the header.
+- Keep “Login” and “Get Started” right-aligned, balanced visually.
+
+#### ☀️ 2. Light Theme Only for Landing Page
+- Force the landing page to **always use the light theme**, even if the rest of the app uses dark mode.
+- Do not import or apply dark theme styles to the landing section.
+- Use a clean white or very light gray background, modern gradients, and soft shadows.
+
+#### 🧠 3. Dashboard Preview Video
+- Add this video inside the **dashboard preview card** on the landing page:
+https://pub-bfeb4174c2454e78b07476ff8e0709c0.r2.dev/From%20KlickPin%20CF%20Happy%20Day%20everyone%F0%9F%A4%A9%20Showcasing%20the%20animation%20for%20our%20design%F0%9F%98%8D%20Heres%20presenting%20you%20with%E2%80%A6%20%5BVideo%5D%20_%20Web%20design%20tools%20Visual%20identity%20design%20branding%20Graphic%20design%20ads.mp4
+
+vbnet
+Copier le code
+- Make sure it:
+- Autoplays and loops.
+- Is muted by default.
+- Has smooth rounded corners and subtle drop shadows.
+- Resizes properly across mobile and desktop screens.
+
+Example:
+```jsx
+<video
+src="..."
+autoPlay
+loop
+muted
+playsInline
+className="rounded-2xl shadow-lg w-full h-auto"
+/>
+🎨 4. Landing Page Design Enhancement
+Replace basic icons with modern, consistent icons that match the dashboard UI (use Lucide, Heroicons, or your existing icon library).
+
+Redesign sections (“Features”, “Solutions”, “Pricing”) using cards with icons, hover effects, and consistent typography.
+
+Add subtle animated gradients or accent borders using TailwindCSS.
+
+Use colors that match LumenR’s dashboard (blue/teal/white palette).
+
+Make spacing consistent — equal padding on each section, balanced visual rhythm.
+
+🖼️ 5. Add Informative & Visual Content
+Add 3–4 generated product preview images (use placeholders if needed).
+
+Place them in feature sections to illustrate LumenR’s capabilities:
+
+Example: “Automated Invoicing”, “Smart Scheduling”, “AI Insights”.
+
+Each image/card should include:
+
+A clear headline
+
+A 1-line benefit statement
+
+A small preview mockup or illustrative image
+
+🧩 6. SaaS-Level Professional Layout
+Ensure the entire layout follows a hero → features → solutions → pricing → CTA flow.
+
+Add a short tagline below the hero headline.
+
+Add a gradient background in the hero section that transitions from light blue to white.
+
+Include a polished “Start Free Trial” call-to-action button that stands out.
+
+Improve mobile responsiveness (especially for nav spacing, pricing grid, and video area).
+
+🧱 7. Technical Improvements
+Optimize all images using next/image (with unoptimized={true} if on Replit).
+
+Ensure all assets are responsive (use object-cover, aspect-video, etc.).
+
+Audit the layout to remove unnecessary wrapper divs and redundant CSS.
+
+Verify the final landing page passes Lighthouse Performance > 90 and Accessibility > 95.
+
+✅ Deliverables
+After running these improvements:
+
+Landing page is visually balanced, responsive, and professional.
+
+“Try Lumen AI” and “Chat with Lumen AI” are completely removed.
+
+Navbar items are centered perfectly.
+
+Dashboard preview card includes the specified video and scales properly.
+
+The landing page uses only light mode, matching the SaaS branding.
+
+The layout feels premium, similar to top-tier SaaS platforms (Notion, Linear, or Framer).
+

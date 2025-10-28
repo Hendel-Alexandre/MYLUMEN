@@ -399,3 +399,11 @@ a:active,
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Grid background pattern for landing page */
+.bg-grid-pattern {
+  background-image: 
+    linear-gradient(to right, rgba(0, 0, 0, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
+  background-size: 50px 50px;
+}
