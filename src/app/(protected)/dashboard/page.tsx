@@ -29,22 +29,10 @@ const AnalyticsDashboard = dynamic(
   }
 )
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.05 }
-  }
-}
+import { reducedMotionVariants } from '@/lib/motion-config'
 
-const itemVariants = {
-  hidden: { y: 20, opacity: 0 },
-  visible: {
-    y: 0,
-    opacity: 1,
-    transition: { type: "spring" as const, stiffness: 400, damping: 25 }
-  }
-}
+const containerVariants = reducedMotionVariants.container
+const itemVariants = reducedMotionVariants.item
 
 export default function DashboardPage() {
   const { t } = useTranslation()

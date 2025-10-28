@@ -5,7 +5,16 @@ const nextConfig: NextConfig = {
   
   // Enable experimental features
   experimental: {
-    optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
+    optimizePackageImports: [
+      'lucide-react', 
+      '@radix-ui/react-icons',
+      'recharts',
+      'framer-motion',
+      '@radix-ui/react-dialog',
+      '@radix-ui/react-dropdown-menu',
+      '@radix-ui/react-tabs',
+      'date-fns'
+    ],
   },
   
   // Compiler options for better performance

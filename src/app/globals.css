@@ -359,3 +359,43 @@ nextjs-portal {
     }
   }
 }
+/* Additional Performance Optimizations */
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html {
+  text-rendering: optimizeLegibility;
+}
+
+/* Instant button/link feedback */
+button, a, [role="button"] {
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+button:not(:disabled):active, 
+a:active, 
+[role="button"]:active {
+  transform: scale(0.98);
+  transition: transform 0.05s ease-out;
+}
+
+/* Optimize card hover animations */
+.card, [class*="card-"] {
+  transition: transform 0.15s ease-out, box-shadow 0.15s ease-out;
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
