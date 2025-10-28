@@ -152,10 +152,21 @@ export function AnalyticsDashboard() {
     )
   }
 
-  if (!data) {
+  if (error || !data || !data.metrics) {
     return (
-      <div className="text-center py-12">
-        <p className="text-muted-foreground">No analytics data available</p>
+      <div className="flex flex-col items-center justify-center py-12 space-y-4">
+        <div className="text-center">
+          <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+          <h3 className="text-lg font-semibold mb-2">Database Setup Required</h3>
+          <p className="text-sm text-muted-foreground max-w-md">
+            Your analytics dashboard will be available once the database is configured and tables are created.
+          </p>
+          {error && (
+            <p className="text-xs text-muted-foreground mt-2">
+              {error.message || 'Unable to load analytics data'}
+            </p>
+          )}
+        </div>
       </div>
     )
   }
