@@ -57,7 +57,7 @@ export function OnboardingWizard() {
     country: '',
     province: '',
     city: '',
-    businessName: localStorage.getItem('pending_business_name') || '',
+    businessName: '',
     businessAddress: '',
     businessPhone: '',
     taxId: '',
@@ -69,6 +69,13 @@ export function OnboardingWizard() {
 
   // Load saved progress from localStorage
   useEffect(() => {
+    // Load pending business name
+    const pendingBusinessName = localStorage.getItem('pending_business_name');
+    if (pendingBusinessName) {
+      setFormData(prev => ({ ...prev, businessName: pendingBusinessName }));
+    }
+
+    // Load saved progress
     const savedData = localStorage.getItem('lumenr-onboarding-progress');
     if (savedData) {
       try {
