@@ -41,21 +41,21 @@ export default function IndexPage() {
             <Image src="/lumenr-logo.png" alt="LumenR" width={48} height={48} priority unoptimized />
           </div>
           
-          <div className="hidden md:flex items-center gap-8 flex-1 justify-center">
-            <a href="#features" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
+          <div className="hidden md:flex items-center gap-8 absolute left-1/2 -translate-x-1/2">
+            <a href="#features" className="text-sm font-medium text-gray-900 hover:text-purple-600 transition-colors">
               Features
             </a>
-            <a href="#solutions" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
+            <a href="#solutions" className="text-sm font-medium text-gray-900 hover:text-purple-600 transition-colors">
               Solutions
             </a>
-            <a href="#pricing" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
+            <a href="#pricing" className="text-sm font-medium text-gray-900 hover:text-purple-600 transition-colors">
               Pricing
             </a>
           </div>
           
-          <div className="flex items-center gap-3 flex-shrink-0">
+          <div className="flex items-center gap-3 flex-shrink-0 ml-auto">
             <Link href="/login" className="hidden md:inline-block">
-              <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-all">Login</Button>
+              <Button variant="ghost" size="sm" className="text-gray-900 hover:bg-gray-100 transition-all">Login</Button>
             </Link>
             <Link href="/signup" className="hidden md:inline-block">
               <Button size="sm" className="gap-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl shadow-md hover:shadow-lg transition-all">
@@ -64,10 +64,10 @@ export default function IndexPage() {
             </Link>
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 text-gray-600 hover:text-gray-900"
+              className="md:hidden p-2 text-gray-900 hover:text-gray-900"
               aria-label="Toggle menu"
             >
-              {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              {mobileMenuOpen ? <X className="h-6 w-6 text-gray-900" /> : <Menu className="h-6 w-6 text-gray-900" />}
             </button>
           </div>
         </div>
@@ -79,27 +79,27 @@ export default function IndexPage() {
               <a
                 href="#features"
                 onClick={() => setMobileMenuOpen(false)}
-                className="block py-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+                className="block py-2 text-sm font-medium text-gray-900 hover:text-purple-600 transition-colors"
               >
                 Features
               </a>
               <a
                 href="#solutions"
                 onClick={() => setMobileMenuOpen(false)}
-                className="block py-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+                className="block py-2 text-sm font-medium text-gray-900 hover:text-purple-600 transition-colors"
               >
                 Solutions
               </a>
               <a
                 href="#pricing"
                 onClick={() => setMobileMenuOpen(false)}
-                className="block py-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+                className="block py-2 text-sm font-medium text-gray-900 hover:text-purple-600 transition-colors"
               >
                 Pricing
               </a>
               <div className="pt-3 border-t border-gray-200 space-y-2">
                 <Link href="/login" onClick={() => setMobileMenuOpen(false)} className="block">
-                  <Button variant="ghost" size="sm" className="w-full text-gray-600 hover:text-gray-900 hover:bg-gray-100">Login</Button>
+                  <Button variant="ghost" size="sm" className="w-full text-gray-900 hover:bg-gray-100">Login</Button>
                 </Link>
                 <Link href="/signup" onClick={() => setMobileMenuOpen(false)} className="block">
                   <Button size="sm" className="w-full gap-2 bg-purple-600 hover:bg-purple-700 text-white rounded-xl shadow-md">
@@ -117,17 +117,17 @@ export default function IndexPage() {
         <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
         <div className="container mx-auto px-4 pt-20 pb-16 md:pt-32 md:pb-24 relative z-10">
           <div className="text-center max-w-4xl mx-auto space-y-8">
-            <Badge className="mb-4 bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100">
-              <Sparkles className="h-3 w-3 mr-1" />
+            <Badge className="mb-4 bg-gray-100 text-gray-900 border-gray-300 hover:bg-gray-200">
+              <Sparkles className="h-3 w-3 mr-1 text-gray-900" />
               Now with AI-Powered Insights
             </Badge>
             
             <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight text-gray-900">
               Run Your Business Smarter
-              <span className="block mt-2 text-purple-600">with LumenR</span>
+              <span className="block mt-2 text-gray-900">with LumenR</span>
             </h1>
             
-            <p className="text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+            <p className="text-xl md:text-2xl text-gray-900 max-w-3xl mx-auto leading-relaxed">
               All-in-one AI platform to manage clients, projects, invoices, and operations powered by automation
             </p>
 
@@ -139,17 +139,17 @@ export default function IndexPage() {
               </Link>
             </div>
 
-            <p className="text-sm text-gray-500 flex items-center justify-center gap-6 flex-wrap">
+            <p className="text-sm text-gray-900 flex items-center justify-center gap-6 flex-wrap">
               <span className="flex items-center gap-1">
-                <CheckCircle className="h-4 w-4 text-green-500" />
+                <CheckCircle className="h-4 w-4 text-gray-900" />
                 7-day free trial
               </span>
               <span className="flex items-center gap-1">
-                <CheckCircle className="h-4 w-4 text-green-500" />
+                <CheckCircle className="h-4 w-4 text-gray-900" />
                 No credit card required
               </span>
               <span className="flex items-center gap-1">
-                <CheckCircle className="h-4 w-4 text-green-500" />
+                <CheckCircle className="h-4 w-4 text-gray-900" />
                 Cancel anytime
               </span>
             </p>
@@ -163,10 +163,10 @@ export default function IndexPage() {
                 <div className="absolute inset-0 bg-purple-50 opacity-30"></div>
                 <div className="relative z-10 text-center space-y-4">
                   <div className="inline-block p-4 bg-white rounded-2xl shadow-lg">
-                    <BarChart className="h-16 w-16 text-purple-600" />
+                    <BarChart className="h-16 w-16 text-gray-900" />
                   </div>
-                  <p className="text-gray-700 font-semibold text-lg">Interactive Dashboard Preview</p>
-                  <p className="text-gray-500 text-sm max-w-md mx-auto">Real-time analytics, AI insights, and automated workflows</p>
+                  <p className="text-gray-900 font-semibold text-lg">Interactive Dashboard Preview</p>
+                  <p className="text-gray-900 text-sm max-w-md mx-auto">Real-time analytics, AI insights, and automated workflows</p>
                 </div>
               </div>
             </Card>
@@ -174,7 +174,7 @@ export default function IndexPage() {
 
           {/* Scroll Down Indicator */}
           <div className="flex justify-center mt-16">
-            <ChevronDown className="h-8 w-8 text-gray-400 animate-bounce" />
+            <ChevronDown className="h-8 w-8 text-gray-900 animate-bounce" />
           </div>
         </div>
       </section>
@@ -184,28 +184,28 @@ export default function IndexPage() {
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             <div className="text-center space-y-2">
-              <div className="text-4xl md:text-5xl font-bold text-purple-600">
+              <div className="text-4xl md:text-5xl font-bold text-gray-900">
                 200+
               </div>
-              <div className="text-sm text-gray-600 font-medium">Businesses Optimized</div>
+              <div className="text-sm text-gray-900 font-medium">Businesses Optimized</div>
             </div>
             <div className="text-center space-y-2">
-              <div className="text-4xl md:text-5xl font-bold text-purple-600">
+              <div className="text-4xl md:text-5xl font-bold text-gray-900">
                 5K+
               </div>
-              <div className="text-sm text-gray-600 font-medium">Documents Processed</div>
+              <div className="text-sm text-gray-900 font-medium">Documents Processed</div>
             </div>
             <div className="text-center space-y-2">
-              <div className="text-4xl md:text-5xl font-bold text-purple-600">
+              <div className="text-4xl md:text-5xl font-bold text-gray-900">
                 99.9%
               </div>
-              <div className="text-sm text-gray-600 font-medium">Uptime</div>
+              <div className="text-sm text-gray-900 font-medium">Uptime</div>
             </div>
             <div className="text-center space-y-2">
               <div className="flex items-center justify-center">
-                <Globe className="h-12 w-12 text-purple-600" />
+                <Globe className="h-12 w-12 text-gray-900" />
               </div>
-              <div className="text-sm text-gray-600 font-medium">Global Coverage</div>
+              <div className="text-sm text-gray-900 font-medium">Global Coverage</div>
             </div>
           </div>
         </div>
@@ -214,11 +214,11 @@ export default function IndexPage() {
       {/* Problem Section */}
       <section className="container mx-auto px-4 py-20 md:py-32 bg-gray-50">
         <div className="max-w-3xl mx-auto text-center mb-16">
-          <Badge variant="outline" className="mb-4 border-orange-200 text-orange-700 bg-orange-50">The Problem</Badge>
+          <Badge variant="outline" className="mb-4 border-gray-300 text-gray-900 bg-gray-100">The Problem</Badge>
           <h2 className="text-3xl md:text-5xl font-bold mb-6 text-gray-900">
             Business Management is Still Too Manual
           </h2>
-          <p className="text-xl text-gray-600">
+          <p className="text-xl text-gray-900">
             Even with modern tools, teams waste time switching between systems and chasing data
           </p>
         </div>
@@ -229,7 +229,7 @@ export default function IndexPage() {
               <X className="h-7 w-7 text-white" />
             </div>
             <h3 className="font-bold text-xl text-gray-900">Too Many Tools</h3>
-            <p className="text-gray-600 leading-relaxed">
+            <p className="text-gray-900 leading-relaxed">
               Scattered apps create confusion and data silos that slow you down.
             </p>
           </Card>
@@ -238,7 +238,7 @@ export default function IndexPage() {
               <BarChart className="h-7 w-7 text-white" />
             </div>
             <h3 className="font-bold text-xl text-gray-900">No Clear Insights</h3>
-            <p className="text-gray-600 leading-relaxed">
+            <p className="text-gray-900 leading-relaxed">
               Hard to see real financial performance and make data-driven decisions.
             </p>
           </Card>
@@ -247,7 +247,7 @@ export default function IndexPage() {
               <Clock className="h-7 w-7 text-white" />
             </div>
             <h3 className="font-bold text-xl text-gray-900">Slow Workflows</h3>
-            <p className="text-gray-600 leading-relaxed">
+            <p className="text-gray-900 leading-relaxed">
               Manual quoting, invoicing, and tracking kill efficiency and growth.
             </p>
           </Card>
@@ -258,11 +258,11 @@ export default function IndexPage() {
       <section id="solutions" className="bg-white py-16 md:py-24">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center mb-12">
-            <Badge variant="outline" className="mb-4 border-purple-200 text-purple-700 bg-purple-50">The LumenR Solution</Badge>
+            <Badge variant="outline" className="mb-4 border-gray-300 text-gray-900 bg-gray-100">The LumenR Solution</Badge>
             <h2 className="text-3xl md:text-5xl font-bold mb-6 text-gray-900">
               One Platform. Total Control.
             </h2>
-            <p className="text-lg text-gray-600">
+            <p className="text-lg text-gray-900">
               Unify your operations, automate your admin, and grow faster with intelligent automation
             </p>
           </div>
@@ -274,7 +274,7 @@ export default function IndexPage() {
               </div>
               <div>
                 <h3 className="font-bold text-lg mb-2 text-gray-900">Smart CRM</h3>
-                <p className="text-sm text-gray-600 leading-relaxed">Manage clients, quotes, invoices, and payments in one unified platform.</p>
+                <p className="text-sm text-gray-900 leading-relaxed">Manage clients, quotes, invoices, and payments in one unified platform.</p>
               </div>
             </Card>
             <Card className="p-6 space-y-4 hover:shadow-xl transition-all duration-300 bg-white border-gray-200 group hover:scale-105">
@@ -283,7 +283,7 @@ export default function IndexPage() {
               </div>
               <div>
                 <h3 className="font-bold text-lg mb-2 text-gray-900">AI Insights</h3>
-                <p className="text-sm text-gray-600 leading-relaxed">Forecast revenue, detect risks, and get intelligent action suggestions.</p>
+                <p className="text-sm text-gray-900 leading-relaxed">Forecast revenue, detect risks, and get intelligent action suggestions.</p>
               </div>
             </Card>
             <Card className="p-6 space-y-4 hover:shadow-xl transition-all duration-300 bg-white border-gray-200 group hover:scale-105">
@@ -292,7 +292,7 @@ export default function IndexPage() {
               </div>
               <div>
                 <h3 className="font-bold text-lg mb-2 text-gray-900">Receipts & OCR</h3>
-                <p className="text-sm text-gray-600 leading-relaxed">Upload, scan, and organize expenses automatically with AI-powered OCR.</p>
+                <p className="text-sm text-gray-900 leading-relaxed">Upload, scan, and organize expenses automatically with AI-powered OCR.</p>
               </div>
             </Card>
             <Card className="p-6 space-y-4 hover:shadow-xl transition-all duration-300 bg-white border-gray-200 group hover:scale-105">
@@ -301,7 +301,7 @@ export default function IndexPage() {
               </div>
               <div>
                 <h3 className="font-bold text-lg mb-2 text-gray-900">Calendar Sync</h3>
-                <p className="text-sm text-gray-600 leading-relaxed">Connect Google or Outlook to streamline scheduling and booking.</p>
+                <p className="text-sm text-gray-900 leading-relaxed">Connect Google or Outlook to streamline scheduling and booking.</p>
               </div>
             </Card>
             <Card className="p-6 space-y-4 hover:shadow-xl transition-all duration-300 bg-white border-gray-200 group hover:scale-105">
@@ -310,7 +310,7 @@ export default function IndexPage() {
               </div>
               <div>
                 <h3 className="font-bold text-lg mb-2 text-gray-900">E-Sign Contracts</h3>
-                <p className="text-sm text-gray-600 leading-relaxed">Send and sign documents instantly and securely with built-in e-signatures.</p>
+                <p className="text-sm text-gray-900 leading-relaxed">Send and sign documents instantly and securely with built-in e-signatures.</p>
               </div>
             </Card>
             <Card className="p-6 space-y-4 hover:shadow-xl transition-all duration-300 bg-white border-gray-200 group hover:scale-105">
@@ -319,7 +319,7 @@ export default function IndexPage() {
               </div>
               <div>
                 <h3 className="font-bold text-lg mb-2 text-gray-900">Tax & Reports</h3>
-                <p className="text-sm text-gray-600 leading-relaxed">Generate tax summaries, analytics, and comprehensive financial dashboards.</p>
+                <p className="text-sm text-gray-900 leading-relaxed">Generate tax summaries, analytics, and comprehensive financial dashboards.</p>
               </div>
             </Card>
           </div>
@@ -329,11 +329,11 @@ export default function IndexPage() {
       {/* Features Highlight */}
       <section id="features" className="container mx-auto px-4 py-16 md:py-24 bg-gray-50">
         <div className="text-center mb-16">
-          <Badge variant="outline" className="mb-4 border-blue-200 text-blue-700 bg-blue-50">Powerful Features</Badge>
+          <Badge variant="outline" className="mb-4 border-gray-300 text-gray-900 bg-gray-100">Powerful Features</Badge>
           <h2 className="text-3xl md:text-5xl font-bold mb-6 text-gray-900">
             Everything You Need to Run Smarter
           </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          <p className="text-xl text-gray-900 max-w-3xl mx-auto">
             Built for modern businesses who demand efficiency, insights, and growth
           </p>
         </div>
@@ -373,7 +373,7 @@ export default function IndexPage() {
                 <feature.icon className="h-8 w-8 text-white" />
               </div>
               <h3 className="font-bold text-2xl text-gray-900">{feature.title}</h3>
-              <p className="text-gray-600 leading-relaxed">
+              <p className="text-gray-900 leading-relaxed">
                 {feature.description}
               </p>
             </Card>
@@ -384,11 +384,11 @@ export default function IndexPage() {
       {/* Pricing Section */}
       <section id="pricing" className="container mx-auto px-4 py-16 md:py-24 bg-white">
         <div className="max-w-3xl mx-auto text-center mb-12">
-          <Badge variant="outline" className="mb-4 border-purple-200 text-purple-700 bg-purple-50">Pricing</Badge>
+          <Badge variant="outline" className="mb-4 border-gray-300 text-gray-900 bg-gray-100">Pricing</Badge>
           <h2 className="text-3xl md:text-5xl font-bold mb-6 text-gray-900">
             Simple, Transparent Plans
           </h2>
-          <p className="text-lg text-gray-600">
+          <p className="text-lg text-gray-900">
             Choose the plan that fits your business needs. Upgrade or downgrade anytime.
           </p>
         </div>
@@ -398,22 +398,22 @@ export default function IndexPage() {
           <Card className="p-8 space-y-6 border-gray-200 bg-white hover:shadow-xl transition-all">
             <div>
               <h3 className="text-2xl font-bold mb-2 text-gray-900">Starter</h3>
-              <p className="text-gray-600">Freelancers & Solos</p>
+              <p className="text-gray-900">Freelancers & Solos</p>
             </div>
             <div>
               <span className="text-5xl font-bold text-gray-900">$0</span>
-              <span className="text-gray-600">/mo</span>
+              <span className="text-gray-900">/mo</span>
             </div>
             <ul className="space-y-3">
               {['3 clients', 'Invoices', 'OCR Receipts', 'Basic reports', 'Email support'].map((feature, i) => (
                 <li key={i} className="flex gap-2">
-                  <CheckCircle className="h-5 w-5 text-blue-500 shrink-0" />
-                  <span className="text-sm text-gray-700">{feature}</span>
+                  <CheckCircle className="h-5 w-5 text-gray-900 shrink-0" />
+                  <span className="text-sm text-gray-900">{feature}</span>
                 </li>
               ))}
             </ul>
             <Link href="/signup" className="block">
-              <Button variant="outline" className="w-full rounded-xl border-gray-300 text-gray-900 hover:bg-gray-50 transition-all">Start Free Trial</Button>
+              <Button variant="outline" className="w-full rounded-xl border-purple-600 text-purple-600 hover:bg-purple-50 transition-all font-semibold">Start Free Trial</Button>
             </Link>
           </Card>
 
@@ -422,17 +422,17 @@ export default function IndexPage() {
             <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-purple-600 text-white shadow-md">Most Popular</Badge>
             <div>
               <h3 className="text-2xl font-bold mb-2 text-gray-900">Pro</h3>
-              <p className="text-gray-600">Small Teams</p>
+              <p className="text-gray-900">Small Teams</p>
             </div>
             <div>
-              <span className="text-5xl font-bold text-purple-600">$20</span>
-              <span className="text-gray-600">/user/mo</span>
+              <span className="text-5xl font-bold text-gray-900">$20</span>
+              <span className="text-gray-900">/user/mo</span>
             </div>
             <ul className="space-y-3">
               {['Unlimited clients', 'AI Insights', 'Reports', 'E-Sign', 'Priority support'].map((feature, i) => (
                 <li key={i} className="flex gap-2">
-                  <CheckCircle className="h-5 w-5 text-purple-500 shrink-0" />
-                  <span className="text-sm text-gray-700">{feature}</span>
+                  <CheckCircle className="h-5 w-5 text-gray-900 shrink-0" />
+                  <span className="text-sm text-gray-900">{feature}</span>
                 </li>
               ))}
             </ul>
@@ -445,7 +445,7 @@ export default function IndexPage() {
           <Card className="p-8 space-y-6 border-gray-200 bg-white hover:shadow-xl transition-all">
             <div>
               <h3 className="text-2xl font-bold mb-2 text-gray-900">Business+</h3>
-              <p className="text-gray-600">Agencies & Firms</p>
+              <p className="text-gray-900">Agencies & Firms</p>
             </div>
             <div>
               <span className="text-5xl font-bold text-gray-900">Custom</span>
@@ -453,13 +453,13 @@ export default function IndexPage() {
             <ul className="space-y-3">
               {['E-Sign', 'Integrations', 'Advanced Security', 'Dedicated support', 'SLA guarantee'].map((feature, i) => (
                 <li key={i} className="flex gap-2">
-                  <CheckCircle className="h-5 w-5 text-green-500 shrink-0" />
-                  <span className="text-sm text-gray-700">{feature}</span>
+                  <CheckCircle className="h-5 w-5 text-gray-900 shrink-0" />
+                  <span className="text-sm text-gray-900">{feature}</span>
                 </li>
               ))}
             </ul>
             <Link href="/signup" className="block">
-              <Button variant="outline" className="w-full rounded-xl border-gray-300 text-gray-900 hover:bg-gray-50 transition-all">Contact Sales</Button>
+              <Button variant="outline" className="w-full rounded-xl border-purple-600 text-purple-600 hover:bg-purple-50 transition-all font-semibold">Contact Sales</Button>
             </Link>
           </Card>
         </div>
