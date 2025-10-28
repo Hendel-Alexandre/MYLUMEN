@@ -16,27 +16,27 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Development Server"
+args = "Start Game"
 
 [[workflows.workflow]]
-name = "Development Server"
+name = "Start Game"
 author = "agent"
-
-[workflows.workflow.metadata]
-outputType = "webview"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "npm run dev"
 waitForPort = 5000
 
+[workflows.workflow.metadata]
+outputType = "webview"
+
 [[ports]]
 localPort = 5000
 externalPort = 80
 
 [[ports]]
-localPort = 46553
-externalPort = 3001
+localPort = 45933
+externalPort = 3000
 
 [deployment]
 deploymentTarget = "autoscale"
