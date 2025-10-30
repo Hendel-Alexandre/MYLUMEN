@@ -26,8 +26,12 @@ yarn-debug.log*
 yarn-error.log*
 
 # local env files - IMPORTANT: Keep these private!
-# .env*.local # Removed by Orchids to allow .env files
-# .env # Removed by Orchids to allow .env files
+.env*.local
+.env
+.env.development
+.env.production
+.env.staging
+!.env.example
 
 # vercel
 .vercel
