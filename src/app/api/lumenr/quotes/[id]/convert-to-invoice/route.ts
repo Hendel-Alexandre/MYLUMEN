@@ -7,7 +7,7 @@ import { jsonOk, jsonError } from '@/lib/api-utils';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { userId, error } = await getAuthUser(request);
@@ -15,7 +15,7 @@ export async function POST(
       return jsonError('Authentication required', 401);
     }
 
-    const id = params.id;
+    const { id } = await params;
 
     // Validate ID is a valid integer
     if (!id || isNaN(parseInt(id))) {

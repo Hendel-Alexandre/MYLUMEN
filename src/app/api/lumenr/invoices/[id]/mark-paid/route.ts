@@ -7,7 +7,7 @@ import { jsonOk, jsonError } from '@/lib/api-utils';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { userId, error } = await getAuthUser(request);
@@ -16,7 +16,7 @@ export async function POST(
     }
 
     // Extract and validate invoice ID from path parameter
-    const id = params.id;
+    const { id } = await params;
     if (!id || isNaN(parseInt(id))) {
       return jsonError('Valid invoice ID is required', 400);
     }
