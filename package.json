@@ -84,7 +84,7 @@
     "tailwind-merge": "^2.6.0",
     "tailwindcss-animate": "^1.0.7",
     "tesseract.js": "^6.0.1",
-    "three": "^0.160.1",
+    "three": "^0.180.0",
     "vaul": "^0.9.9",
     "xlsx": "^0.18.5",
     "zod": "^3.25.76"
@@ -100,7 +100,11 @@
     "lovable-tagger": "^1.1.9",
     "postcss": "^8.5.6",
     "tailwindcss": "^3.4.17",
+    "tsx": "^4.20.0",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.46.2"
+  },
+  "overrides": {
+    "three-mesh-bvh": "^0.8.0"
   }
 }

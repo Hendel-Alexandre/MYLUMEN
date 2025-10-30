@@ -1,0 +1,66 @@
+Objective: remove npm deprecation warnings during build by modernizing our tooling and deps WITHOUT changing app behavior.
+
+Warnings seen:
+- node-domexception@1.0.0 (deprecated; use native DOMException)
+- @esbuild-kit/esm-loader and @esbuild-kit/core-utils (merged into `tsx`)
+- three-mesh-bvh@0.7.8 (deprecated for our three.js version; use 0.8.x)
+
+Do the following, project-wide:
+
+1) Replace esbuild-kit with `tsx`:
+   - If package.json has devDeps `@esbuild-kit/esm-loader` or `@esbuild-kit/core-utils`, remove them.
+   - Add devDep: `"tsx": "^4"`.
+   - Update any scripts that use Node’s ESM loader:
+       - Replace `node --loader=@esbuild-kit/esm-loader src/...` with `tsx src/...`
+       - Replace `tsx --watch` or equivalent if we had custom loader flags.
+   - Remove unused esbuild-kit imports from code if present.
+
+2) Fix three-mesh-bvh deprecation:
+   - In package.json, add (or update) deps to ensure compatibility:
+       - `"three-mesh-bvh": "^0.8.0"`
+       - Keep `three` on a compatible release (latest stable is fine); set: `"three": "^0.1xx.x"` (latest minor).
+   - If three types are used, ensure `"@types/three"` is compatible or remove if `three` bundles types.
+   - Adjust any import paths that changed between versions (rare). Build to confirm.
+
+3) Remove node-domexception polyfill usages:
+   - Search code for `node-domexception` imports. If found, remove and use the platform global:
+       - Replace `import DOMException from 'node-domexception'`
+         with the built-in `DOMException` constructor.
+   - If `node-domexception` is not directly referenced (transitive only), add an npm `overrides` entry to silence the deprecated package by replacing with a no-op:
+       - In package.json:
+         ```
+         "overrides": {
+           "node-domexception": "npm:@empty@1.0.0"
+         }
+         ```
+         OR, if a no-op alias isn’t desired, leave it; it’s only a warning and will not break the build.
+   - Prefer removing any direct dependency entirely.
+
+4) Tidy package.json:
+   - Add:
+     ```
+     "overrides": {
+       "three-mesh-bvh": "^0.8.0"
+     }
+     ```
+     (keeps transitive trees aligned)
+   - Ensure scripts don’t run lint with `--max-warnings=0` before build. Keep:
+     ```
+     "build": "next build"
+     ```
+     and keep lint as a separate script.
+
+5) Run install + verify:
+   - Remove lock + node_modules and reinstall to apply overrides:
+     ```
+     rm -rf node_modules package-lock.json
+     npm i
+     ```
+   - Then:
+     ```
+     npm run build
+     ```
+   - If any TypeScript type errors appear due to `three` or `three-mesh-bvh`, fix imports/types minimally without altering runtime logic.
+
+6) Report back:
+   - Summarize the exact changes made to package.json (before/after), list files updated (scripts, imports), and confirm the build runs clean with no deprecation warnings from esbuild-kit or three-mesh-bvh. Note whether node-domexception remains as a transitive warning (acceptable) or was neutralized via overrides/no-op replacement.
