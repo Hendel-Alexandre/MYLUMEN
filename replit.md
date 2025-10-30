@@ -50,11 +50,13 @@ Preferred communication style: Simple, everyday language.
 ### Performance Optimizations
 
 -   **Environment Variable Caching:** Centralized configuration (`src/lib/config.ts`) caches environment variables on first access; all Supabase and Stripe clients consume cached values instead of accessing `process.env` directly.
--   **Code Splitting:** Heavy dashboard components (AnalyticsDashboard, InteractiveBanners) are lazy-loaded using `next/dynamic` with dedicated skeleton loaders for improved perceived performance.
+-   **Code Splitting:** Heavy dashboard components (AnalyticsDashboard, InteractiveBanners) and PDF components (QuotePDF, InvoicePDF, ContractPDF) are lazy-loaded using `next/dynamic` with dedicated skeleton loaders for improved perceived performance.
+-   **API Response Caching:** Analytics API uses Next.js ISR (5-minute revalidation) combined with HTTP cache headers via `withCache` utility for optimal performance.
 -   **Performance Monitoring:** `PerformanceMonitor` utility (`src/lib/performance.ts`) integrated into critical API routes (analytics, clients, invoices) with comprehensive logging on all code paths including auth failures and validation errors.
 -   **Image Optimization:** Next.js Image component used for all images with explicit dimensions, priority flags, and modern formats (AVIF, WebP).
 -   **Static Asset Caching:** Long-lived cache headers (1 year) configured for static assets, Next.js build outputs, and fonts.
 -   **Compression:** Gzip compression enabled for all responses in Next.js configuration.
+-   **Vercel Configuration:** API routes properly configured with appropriate timeouts (30s for analytics, 20s default) and memory allocation (1024MB).
 
 ## External Dependencies
 
