@@ -3,9 +3,17 @@
   "framework": "nextjs",
   "regions": ["iad1"],
   "functions": {
-    "src/app/api/**/*.ts": {
+    "app/api/core/analytics/route.js": {
       "memory": 1024,
       "maxDuration": 30
+    },
+    "app/api/lumenr/analytics/route.js": {
+      "memory": 1024,
+      "maxDuration": 30
+    },
+    "app/api/**/route.js": {
+      "memory": 1024,
+      "maxDuration": 20
     }
   },
   "rewrites": [

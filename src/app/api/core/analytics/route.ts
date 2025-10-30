@@ -7,7 +7,6 @@ import { PerformanceMonitor } from '@/lib/performance';
 import { withCache } from '@/lib/api-cache';
 import { NextResponse } from 'next/server';
 
-export const dynamic = 'force-dynamic';
 export const revalidate = 300; // Cache for 5 minutes
 
 export async function GET(request: Request) {

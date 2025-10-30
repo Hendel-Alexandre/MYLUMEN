@@ -5,10 +5,10 @@ const nextConfig: NextConfig = {
   
   // Build configuration for production deployment
   eslint: {
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: false,
   },
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false,
   },
   
   // Enable experimental features
