@@ -162,7 +162,7 @@ export default function BookingsPage() {
 
   const handleEditBooking = (booking: Booking) => {
     setEditingBooking(booking)
-    setIsEditDialogOpen(true)
+    setIsDialogOpen(true)
   }
 
   const getClientName = (clientId: number) => {
