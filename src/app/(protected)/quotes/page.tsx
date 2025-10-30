@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react'
+import dynamic from 'next/dynamic'
 import { motion } from 'framer-motion'
 import { Plus, Search, FileText, MoreHorizontal, Edit, Trash2, CheckCircle, Send, ArrowRight, Download } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -16,9 +17,13 @@ import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import LineItemsEditor from '@/components/LineItems/LineItemsEditor'
-import { QuotePDF } from '@/components/PDF/QuotePDF'
 import { downloadPDF } from '@/lib/pdf-utils'
 import React from 'react'
+
+const QuotePDF = dynamic(
+  () => import('@/components/PDF/QuotePDF').then(mod => ({ default: mod.QuotePDF })),
+  { ssr: false }
+)
 
 interface Client {
   id: number

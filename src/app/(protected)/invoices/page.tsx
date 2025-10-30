@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react'
+import dynamic from 'next/dynamic'
 import { motion } from 'framer-motion'
 import { Plus, Search, FileText, MoreHorizontal, Edit, Trash2, Eye, Download, Send, CheckCircle, Lock } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -19,9 +20,13 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import LineItemsEditor from '@/components/LineItems/LineItemsEditor'
 import { useSubscription } from '@/hooks/useSubscription'
 import Link from 'next/link'
-import { InvoicePDF } from '@/components/PDF/InvoicePDF'
 import { downloadPDF } from '@/lib/pdf-utils'
 import React from 'react'
+
+const InvoicePDF = dynamic(
+  () => import('@/components/PDF/InvoicePDF').then(mod => ({ default: mod.InvoicePDF })),
+  { ssr: false }
+)
 
 interface Client {
   id: number

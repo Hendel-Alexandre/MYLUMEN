@@ -4,6 +4,11 @@ import { eq, and, gte, sql } from 'drizzle-orm';
 import { getAuthUser } from '@/lib/auth-api';
 import { jsonOk, jsonError } from '@/lib/api-utils';
 import { PerformanceMonitor } from '@/lib/performance';
+import { withCache } from '@/lib/api-cache';
+import { NextResponse } from 'next/server';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 300; // Cache for 5 minutes
 
 export async function GET(request: Request) {
   const perfMon = new PerformanceMonitor('GET /api/core/analytics');
@@ -113,7 +118,7 @@ export async function GET(request: Request) {
       return ((current - last) / last) * 100;
     };
 
-    const response = jsonOk({
+    const responseData = {
       revenue: {
         current: currentRevenue,
         last: lastRevenue,
@@ -138,10 +143,11 @@ export async function GET(request: Request) {
       clients: {
         total: totalClients[0]?.count || 0
       }
-    });
+    };
     
     perfMon.end();
-    return response;
+    const response = NextResponse.json(responseData, { status: 200 });
+    return withCache(response, 300);
   } catch (error: any) {
     perfMon.end();
     console.error('Analytics API Error:', error);

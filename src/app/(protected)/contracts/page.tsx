@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react'
+import dynamic from 'next/dynamic'
 import { motion } from 'framer-motion'
 import { Plus, Search, FileText, MoreHorizontal, Edit, Trash2, CheckCircle, Send, FileSignature, Download } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -15,9 +16,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { ContractPDF } from '@/components/PDF/ContractPDF'
 import { downloadPDF } from '@/lib/pdf-utils'
 import React from 'react'
+
+const ContractPDF = dynamic(
+  () => import('@/components/PDF/ContractPDF').then(mod => ({ default: mod.ContractPDF })),
+  { ssr: false }
+)
 
 interface Client {
   id: number
