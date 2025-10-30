@@ -3,14 +3,13 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
-  CreditCard, DollarSign, TrendingUp, Calendar, 
-  CheckCircle2, Clock, XCircle, ArrowUpRight 
+  CreditCard, DollarSign, 
+  CheckCircle2, Clock, XCircle 
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { getStripe } from '@/lib/stripe/stripe-client';
 
 interface Invoice {
   id: number;

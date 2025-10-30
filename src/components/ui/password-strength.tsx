@@ -17,7 +17,7 @@ export function validatePassword(password: string): ValidationResult {
     { test: /[A-Z]/.test(password), message: "One uppercase letter" },
     { test: /[a-z]/.test(password), message: "One lowercase letter" },
     { test: /[0-9]/.test(password), message: "One number" },
-    { test: /[!@#$%^&*()_+\-=\[\]{};:,.<>?]/.test(password), message: "One special character" },
+    { test: /[!@#$%^&*()_+\-=[\]{};:,.<>?]/.test(password), message: "One special character" },
   ]
 
   const passedTests = validations.filter(v => v.test).length

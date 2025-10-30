@@ -35,7 +35,6 @@ const containerVariants = reducedMotionVariants.container
 const itemVariants = reducedMotionVariants.item
 
 export default function DashboardPage() {
-  const { t } = useTranslation()
   const { userProfile } = useAuth()
   const router = useRouter()
 

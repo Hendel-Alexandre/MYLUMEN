@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get('status');
     const search = searchParams.get('search');
 
-    let conditions = [eq(quotes.userId, userId)];
+    const conditions = [eq(quotes.userId, userId)];
 
     if (status) {
       if (!VALID_STATUSES.includes(status)) {
@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
       conditions.push(eq(quotes.status, status));
     }
 
-    let query = db.select({
+    const query = db.select({
       id: quotes.id,
       clientId: quotes.clientId,
       userId: quotes.userId,

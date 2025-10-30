@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { FileText, Download, Calendar, Filter, FolderOpen, Receipt as ReceiptIcon, FileSignature, DollarSign } from 'lucide-react'
+import { FileText, Download, Filter, FolderOpen, Receipt as ReceiptIcon, FileSignature, DollarSign } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'

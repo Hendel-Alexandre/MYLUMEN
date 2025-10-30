@@ -1,12 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { useClients, useCreateClient, useUpdateClient, useDeleteClient } from '@/hooks/useClients';
 import { 
   Plus, Search, Users, MoreHorizontal, Edit, Trash2, Mail, Phone, 
-  Building2, FileText, Receipt, FileSignature, Globe, Upload, 
-  Download, FileSpreadsheet, AlertCircle, CheckCircle2 
+  Building2, Upload, 
+  Download 
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,12 +15,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { ClientTimeline } from '@/components/Dashboard/ClientTimeline';
 import { Switch } from '@/components/ui/switch';
 import { calculateTaxRate, getTaxDescription } from '@/lib/utils/tax-calculator';
 import { generateClientTemplate, parseClientExcel } from '@/lib/utils/excel-import';

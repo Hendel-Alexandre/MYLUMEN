@@ -36,8 +36,8 @@ function parseReceiptText(text: string): ExtractedReceiptData {
   let date: string | null = null;
   let category = 'Other';
 
-  const amountRegex = /(?:total|amount|sum|paid)[:\s]*[\$£€]?\s*(\d{1,3}(?:[,]\d{3})*(?:[.]\d{2})|\d+[.]\d{2})|[\$£€]\s*(\d{1,3}(?:[,]\d{3})*(?:[.]\d{2})|\d+[.]\d{2})/i;
-  const dateRegex = /(\d{1,2}[-\/]\d{1,2}[-\/]\d{2,4})|(\d{4}[-\/]\d{1,2}[-\/]\d{1,2})/;
+  const amountRegex = /(?:total|amount|sum|paid)[:\s]*[$£€]?\s*(\d{1,3}(?:[,]\d{3})*(?:[.]\d{2})|\d+[.]\d{2})|[$£€]\s*(\d{1,3}(?:[,]\d{3})*(?:[.]\d{2})|\d+[.]\d{2})/i;
+  const dateRegex = /(\d{1,2}[/-]\d{1,2}[/-]\d{2,4})|(\d{4}[/-]\d{1,2}[/-]\d{1,2})/;
   
   for (let i = 0; i < Math.min(lines.length, 5); i++) {
     const line = lines[i].trim();
@@ -86,9 +86,9 @@ function parseReceiptText(text: string): ExtractedReceiptData {
 function parseDate(dateStr: string): string | null {
   dateStr = dateStr.trim();
   
-  const isoFormat = /^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/;
-  const mdyFormat = /^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/;
-  const mdyShortFormat = /^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2})$/;
+  const isoFormat = /^(\d{4})[/-](\d{1,2})[/-](\d{1,2})$/;
+  const mdyFormat = /^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/;
+  const mdyShortFormat = /^(\d{1,2})[/-](\d{1,2})[/-](\d{2})$/;
   
   let year, month, day;
   let match;

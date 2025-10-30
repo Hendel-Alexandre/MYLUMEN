@@ -914,7 +914,7 @@ User message: ${JSON.stringify(message)}`;
         }
         
         // Determine MIME type
-        let mimeType = file.type;
+        const mimeType = file.type;
         if (file.type.startsWith('image/')) {
           // Add image inline data
           messageParts.push({
@@ -989,7 +989,7 @@ User message: ${JSON.stringify(message)}`;
   const candidate = result.candidates[0];
   const content = candidate.content;
   let aiResponse = content.parts.find((p: any) => p.text)?.text || '';
-  let createdItems = [];
+  const createdItems = [];
 
   // Handle function calls
   const functionCalls = content.parts.filter((p: any) => p.functionCall);
@@ -1339,7 +1339,7 @@ User message: ${JSON.stringify(message)}`;
           }
           
           case 'generate_document': {
-            let docPrompt = `Create a ${args.type}: ${args.prompt}`;
+            const docPrompt = `Create a ${args.type}: ${args.prompt}`;
             
             const docResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${googleApiKey}`, {
               method: 'POST',

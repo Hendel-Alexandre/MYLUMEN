@@ -36,13 +36,6 @@ interface Booking {
   updatedAt: string
 }
 
-const statusColors: Record<string, string> = {
-  scheduled: 'bg-blue-500',
-  completed: 'bg-green-500',
-  cancelled: 'bg-red-500',
-  rescheduled: 'bg-yellow-500'
-}
-
 const statusVariants: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
   scheduled: 'default',
   completed: 'default',
@@ -57,7 +50,6 @@ export default function BookingsPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [isDialogOpen, setIsDialogOpen] = useState(false)
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [editingBooking, setEditingBooking] = useState<Booking | null>(null)
   const [newBooking, setNewBooking] = useState({
     clientId: '',
@@ -142,36 +134,6 @@ export default function BookingsPage() {
         notes: ''
       })
       setIsDialogOpen(false)
-      fetchBookings()
-    } catch (error: any) {
-      toast.error(error.message)
-    }
-  }
-
-  const updateBooking = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!editingBooking) return
-
-    try {
-      const token = localStorage.getItem('bearer_token')
-      const response = await fetch(`/api/lumenr/bookings?id=${editingBooking.id}`, {
-        method: 'PUT',
-        headers: { 
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify(editingBooking)
-      })
-
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || 'Failed to update booking')
-      }
-
-      toast.success('Booking updated successfully')
-
-      setIsEditDialogOpen(false)
-      setEditingBooking(null)
       fetchBookings()
     } catch (error: any) {
       toast.error(error.message)

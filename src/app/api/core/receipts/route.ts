@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
     const startDate = searchParams.get('startDate');
     const endDate = searchParams.get('endDate');
 
-    let conditions = [eq(receipts.userId, userId)];
+    const conditions = [eq(receipts.userId, userId)];
 
     if (category) {
       conditions.push(eq(receipts.category, category));

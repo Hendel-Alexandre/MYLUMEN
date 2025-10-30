@@ -3,6 +3,11 @@ import type { NextConfig } from 'next';
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   
+  // Allow cross-origin requests from Replit domain
+  allowedDevOrigins: [
+    'fc8df74b-7c77-4c22-bd89-faac2877769d-00-9ivvuv3ysbli.janeway.replit.dev',
+  ],
+  
   // Build configuration for production deployment
   eslint: {
     ignoreDuringBuilds: false,

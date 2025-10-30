@@ -80,7 +80,7 @@ serve(async (req) => {
     console.log('Document generated successfully, length:', generatedText.length);
 
     // Convert to appropriate format
-    let content = generatedText;
+    const content = generatedText;
     let mimeType = 'text/markdown';
     let extension = 'md';
 

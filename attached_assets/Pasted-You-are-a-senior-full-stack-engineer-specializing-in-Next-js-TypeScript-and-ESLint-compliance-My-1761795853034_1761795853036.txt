@@ -1,0 +1,81 @@
+You are a senior full-stack engineer specializing in Next.js, TypeScript, and ESLint compliance.
+
+My project is failing on Vercel because ESLint errors cause the build to stop.
+
+Your job is to analyze and automatically fix all ESLint errors and warnings across the entire codebase to achieve a clean, production-ready build that passes next build with zero ESLint issues.
+
+🔧 Key Directives
+
+Do not alter functional behavior or logic.
+
+Fix all ESLint rule violations while keeping the code idiomatic and readable.
+
+Preserve type safety and TypeScript correctness at all times.
+
+Do not silence or disable rules globally unless absolutely necessary.
+
+Maintain full compatibility with Next.js (>=14) and TypeScript best practices.
+
+🧩 Common Errors to Fix
+
+Address the following ESLint and TypeScript rule violations across all files:
+
+prefer-const → Use const instead of let when a variable is not reassigned.
+
+@typescript-eslint/no-unused-expressions → Remove or rewrite unused expressions; ensure all expressions perform an action or are wrapped properly.
+
+@typescript-eslint/no-empty-object-type → Replace empty interface extensions with equivalent type aliases or remove redundant declarations.
+
+no-useless-escape → Remove unnecessary escape characters in strings and regular expressions.
+
+no-unused-vars → Remove unused variables or prefixes with _ if reserved for future use.
+
+react/jsx-key → Add unique key props in React lists.
+
+Any other ESLint or Prettier conflicts → Auto-fix safely, maintaining standard style.
+
+🧱 Structural Rules
+
+Use consistent Prettier formatting (2-space indentation, semicolons, double quotes, trailing commas).
+
+Maintain import order: external modules first, then internal modules, then styles.
+
+Remove any dead imports, unused types, and console.log calls unless specifically required.
+
+Ensure all files pass eslint . --ext .js,.jsx,.ts,.tsx cleanly after the refactor.
+
+Confirm all files still compile successfully with next build.
+
+🧰 Actions to Perform
+
+Run a full ESLint auto-fix (eslint --fix) pass conceptually over the project.
+
+Manually fix any remaining ESLint errors that cannot be auto-fixed.
+
+For any unavoidable issues (e.g., third-party code or false positives), adjust .eslintrc minimally:
+
+rules: {
+  "prefer-const": "warn",
+  "@typescript-eslint/no-unused-expressions": "warn",
+}
+
+
+Only apply such downgrades if absolutely necessary.
+
+After fixes, verify that:
+
+npm run lint passes with zero errors.
+
+npm run build completes successfully.
+
+The app runs correctly in npm run dev.
+
+✅ Final Goal
+
+0 ESLint errors or warnings that cause build failure.
+
+100% functionality preserved.
+
+Code formatted to Prettier / Next.js defaults.
+
+Clean, type-safe, production-ready code ready for immediate Vercel deployment.
