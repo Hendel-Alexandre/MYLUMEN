@@ -95,12 +95,68 @@ const nextConfig: NextConfig = {
   // Transpile packages that need it
   transpilePackages: ['three', '@react-three/fiber', '@react-three/drei'],
 
-  // Webpack configuration for compatibility
-  webpack: (config) => {
+  // Webpack configuration for compatibility and optimization
+  webpack: (config, { isServer }) => {
     config.externals.push({
       'utf-8-validate': 'commonjs utf-8-validate',
       'bufferutil': 'commonjs bufferutil',
     });
+
+    if (!isServer) {
+      config.optimization = {
+        ...config.optimization,
+        splitChunks: {
+          chunks: 'all',
+          cacheGroups: {
+            default: false,
+            vendors: false,
+            framerMotion: {
+              name: 'framer-motion',
+              test: /[\\/]node_modules[\\/]framer-motion[\\/]/,
+              priority: 40,
+              reuseExistingChunk: true,
+            },
+            recharts: {
+              name: 'recharts',
+              test: /[\\/]node_modules[\\/](recharts|d3-.*|victory-.*)[\\/]/,
+              priority: 35,
+              reuseExistingChunk: true,
+            },
+            radixUI: {
+              name: 'radix-ui',
+              test: /[\\/]node_modules[\\/]@radix-ui[\\/]/,
+              priority: 30,
+              reuseExistingChunk: true,
+            },
+            reactPDF: {
+              name: 'react-pdf',
+              test: /[\\/]node_modules[\\/]@react-pdf[\\/]/,
+              priority: 25,
+              reuseExistingChunk: true,
+            },
+            three: {
+              name: 'three',
+              test: /[\\/]node_modules[\\/](three|@react-three)[\\/]/,
+              priority: 20,
+              reuseExistingChunk: true,
+            },
+            supabase: {
+              name: 'supabase',
+              test: /[\\/]node_modules[\\/]@supabase[\\/]/,
+              priority: 15,
+              reuseExistingChunk: true,
+            },
+            commons: {
+              name: 'commons',
+              minChunks: 2,
+              priority: 10,
+              reuseExistingChunk: true,
+            },
+          },
+        },
+      };
+    }
+
     return config;
   },
 
