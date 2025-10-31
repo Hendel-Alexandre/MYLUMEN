@@ -1,13 +1,26 @@
 'use client';
 
+import dynamic from 'next/dynamic'
 import { SidebarProvider } from '@/components/ui/sidebar'
 import { AppSidebar } from './AppSidebar'
 import { TopBar } from './TopBar'
-import NoteNotificationPopup from '@/components/notifications/NoteNotificationPopup'
 import { useNoteNotifications } from '@/hooks/useNoteNotifications'
-import { LumenAssistant } from '@/components/AI/LumenAssistant'
-import { OnboardingProvider } from '@/components/Onboarding/OnboardingProvider'
-import { OnboardingRedirect } from '@/components/Dashboard/OnboardingRedirect'
+
+const NoteNotificationPopup = dynamic(() => import('@/components/notifications/NoteNotificationPopup'), {
+  ssr: false
+})
+
+const LumenAssistant = dynamic(() => import('@/components/AI/LumenAssistant').then(mod => ({ default: mod.LumenAssistant })), {
+  ssr: false
+})
+
+const OnboardingProvider = dynamic(() => import('@/components/Onboarding/OnboardingProvider').then(mod => ({ default: mod.OnboardingProvider })), {
+  ssr: false
+})
+
+const OnboardingRedirect = dynamic(() => import('@/components/Dashboard/OnboardingRedirect').then(mod => ({ default: mod.OnboardingRedirect })), {
+  ssr: false
+})
 
 export function MainLayout({ children }: { children: React.ReactNode }) {
   const { notification, isPopupOpen, closePopup, onNotificationHandled } = useNoteNotifications()

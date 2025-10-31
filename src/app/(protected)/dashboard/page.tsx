@@ -1,17 +1,22 @@
 'use client';
 
 import dynamic from 'next/dynamic'
-import { motion } from 'framer-motion'
-import { useTranslation } from 'react-i18next'
+import { Suspense } from 'react'
 import { Plus, FileText, Users, Receipt, TrendingUp } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
-import { LumenAssistant } from '@/components/AI/LumenAssistant'
-import { TrialBanner } from '@/components/ui/feature-lock'
 import { BannersSkeleton } from '@/components/Dashboard/BannersSkeleton'
 import { AnalyticsSkeleton } from '@/components/Dashboard/AnalyticsSkeleton'
+
+const motion = dynamic(() => import('framer-motion').then(mod => ({ default: mod.motion })), {
+  ssr: false
+})
+
+const TrialBanner = dynamic(() => import('@/components/ui/feature-lock').then(mod => ({ default: mod.TrialBanner })), {
+  ssr: false
+})
 
 const InteractiveBanners = dynamic(
   () => import('@/components/Dashboard/InteractiveBanners').then(mod => ({ default: mod.InteractiveBanners })),
@@ -29,7 +34,27 @@ const AnalyticsDashboard = dynamic(
   }
 )
 
-import { reducedMotionVariants } from '@/lib/motion-config'
+const reducedMotionVariants = {
+  container: {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  },
+  item: {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.3
+      }
+    }
+  }
+}
 
 const containerVariants = reducedMotionVariants.container
 const itemVariants = reducedMotionVariants.item
@@ -130,9 +155,6 @@ export default function DashboardPage() {
           <AnalyticsDashboard />
         </motion.div>
       </motion.div>
-      
-      {/* Lumen AI Assistant */}
-      <LumenAssistant />
     </div>
   )
 }
