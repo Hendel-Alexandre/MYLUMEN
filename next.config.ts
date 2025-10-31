@@ -24,12 +24,14 @@ const nextConfig: NextConfig = {
       'lucide-react', 
       '@radix-ui/react-icons',
       'recharts',
-      'framer-motion',
       '@radix-ui/react-dialog',
       '@radix-ui/react-dropdown-menu',
       '@radix-ui/react-tabs',
-      'date-fns',
-      'zustand'
+      '@radix-ui/react-alert-dialog',
+      '@radix-ui/react-select',
+      '@radix-ui/react-toast',
+      '@radix-ui/react-tooltip',
+      'date-fns'
     ],
   },
   
