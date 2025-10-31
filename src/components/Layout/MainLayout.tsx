@@ -5,20 +5,14 @@ import { SidebarProvider } from '@/components/ui/sidebar'
 import { AppSidebar } from './AppSidebar'
 import { TopBar } from './TopBar'
 import { useNoteNotifications } from '@/hooks/useNoteNotifications'
+import { OnboardingProvider } from '@/components/Onboarding/OnboardingProvider'
+import { OnboardingRedirect } from '@/components/Dashboard/OnboardingRedirect'
 
 const NoteNotificationPopup = dynamic(() => import('@/components/notifications/NoteNotificationPopup'), {
   ssr: false
 })
 
 const LumenAssistant = dynamic(() => import('@/components/AI/LumenAssistant').then(mod => ({ default: mod.LumenAssistant })), {
-  ssr: false
-})
-
-const OnboardingProvider = dynamic(() => import('@/components/Onboarding/OnboardingProvider').then(mod => ({ default: mod.OnboardingProvider })), {
-  ssr: false
-})
-
-const OnboardingRedirect = dynamic(() => import('@/components/Dashboard/OnboardingRedirect').then(mod => ({ default: mod.OnboardingRedirect })), {
   ssr: false
 })
 

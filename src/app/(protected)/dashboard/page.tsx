@@ -1,7 +1,6 @@
 'use client';
 
 import dynamic from 'next/dynamic'
-import { Suspense } from 'react'
 import { Plus, FileText, Users, Receipt, TrendingUp } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -9,14 +8,6 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useRouter } from 'next/navigation'
 import { BannersSkeleton } from '@/components/Dashboard/BannersSkeleton'
 import { AnalyticsSkeleton } from '@/components/Dashboard/AnalyticsSkeleton'
-
-const motion = dynamic(() => import('framer-motion').then(mod => ({ default: mod.motion })), {
-  ssr: false
-})
-
-const TrialBanner = dynamic(() => import('@/components/ui/feature-lock').then(mod => ({ default: mod.TrialBanner })), {
-  ssr: false
-})
 
 const InteractiveBanners = dynamic(
   () => import('@/components/Dashboard/InteractiveBanners').then(mod => ({ default: mod.InteractiveBanners })),
@@ -34,31 +25,6 @@ const AnalyticsDashboard = dynamic(
   }
 )
 
-const reducedMotionVariants = {
-  container: {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  },
-  item: {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.3
-      }
-    }
-  }
-}
-
-const containerVariants = reducedMotionVariants.container
-const itemVariants = reducedMotionVariants.item
-
 export default function DashboardPage() {
   const { userProfile } = useAuth()
   const router = useRouter()
@@ -67,14 +33,9 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen">
-      <motion.div
-        className="space-y-6"
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-      >
+      <div className="space-y-6">
         {/* Header */}
-        <motion.div variants={itemVariants}>
+        <div>
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
               <h1 className="text-3xl font-bold text-foreground mb-1">
@@ -101,20 +62,15 @@ export default function DashboardPage() {
               </Button>
             </div>
           </div>
-        </motion.div>
-
-        {/* Trial Banner */}
-        <motion.div variants={itemVariants}>
-          <TrialBanner />
-        </motion.div>
+        </div>
 
         {/* Interactive Analytics Banners */}
-        <motion.div variants={itemVariants}>
+        <div>
           <InteractiveBanners />
-        </motion.div>
+        </div>
 
         {/* Quick Actions */}
-        <motion.div variants={itemVariants}>
+        <div>
           <Card className="glass-effect">
             <CardHeader>
               <CardTitle>Quick Actions</CardTitle>
@@ -148,13 +104,13 @@ export default function DashboardPage() {
               </div>
             </CardContent>
           </Card>
-        </motion.div>
+        </div>
 
         {/* Analytics Dashboard with Insights */}
-        <motion.div variants={itemVariants}>
+        <div>
           <AnalyticsDashboard />
-        </motion.div>
-      </motion.div>
+        </div>
+      </div>
     </div>
   )
 }

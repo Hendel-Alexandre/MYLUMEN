@@ -3,10 +3,6 @@
 import { useState, useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import { Plus, Search, FileText, MoreHorizontal, Edit, Trash2, Download, CheckCircle, Lock } from 'lucide-react'
-
-const motion = dynamic(() => import('framer-motion').then(mod => ({ default: mod.motion })), {
-  ssr: false
-})
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
