@@ -6,6 +6,8 @@ const nextConfig: NextConfig = {
   // Allow cross-origin requests from Replit domain
   allowedDevOrigins: [
     'c682b67b-ef7d-4339-b723-d2da4e24d895-00-iy8wy2ramit.worf.replit.dev',
+    '127.0.0.1',
+    'localhost',
   ],
   
   // Build configuration for production deployment
